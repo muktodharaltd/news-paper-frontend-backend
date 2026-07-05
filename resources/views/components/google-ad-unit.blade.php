@@ -1,13 +1,15 @@
 @props([
     'ad',
     'layout' => 'strip',
+    'slotContext' => null,
     'class' => '',
     'fullWidthResponsive' => null,
 ])
 
 @php
 $client = google_adsense_client();
-$slotId = google_adsense_slot_for($ad);
+$slotContext = $slotContext ?? ($layout === 'strip' ? 'strip' : 'box');
+$slotId = google_adsense_slot_for($ad, $slotContext);
 $boxStyle = $ad ? $ad->slotBoxStyle($layout === 'strip' ? 'strip' : 'box') : '';
 $googleOpts = ad_google_unit_options($ad, $layout === 'strip' ? 'strip' : 'box');
 $responsive = $fullWidthResponsive === null
@@ -38,5 +40,6 @@ $insStyle = "display:block;width:100%;min-height:{$insMinHeight}px;";
          data-ad-width="{{ $adWidth }}"
          data-ad-height="{{ $adHeight }}"
          @endif></ins>
+    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 </div>
 @endif

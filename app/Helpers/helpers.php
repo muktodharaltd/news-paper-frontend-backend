@@ -679,7 +679,7 @@ if (! function_exists('normalize_google_adsense_slot')) {
 
 if (! function_exists('google_adsense_default_slot')) {
     /**
-     * SEO & Meta-তে সেট করা ডিফল্ট Slot ID — সব ad slot-এ fallback।
+     * Strip/banner Slot ID (header, below menu, hero_below ইত্যাদি)।
      */
     function google_adsense_default_slot(): ?string
     {
@@ -687,36 +687,83 @@ if (! function_exists('google_adsense_default_slot')) {
     }
 }
 
+if (! function_exists('google_adsense_strip_slot')) {
+    function google_adsense_strip_slot(): ?string
+    {
+        return google_adsense_default_slot();
+    }
+}
+
+if (! function_exists('google_adsense_box_slot')) {
+    /**
+     * Sidebar/box Slot ID (hero_right, details_right ইত্যাদি)।
+     */
+    function google_adsense_box_slot(): ?string
+    {
+        return normalize_google_adsense_slot(optional(site_meta_record())->google_adsense_box_slot ?? null)
+            ?? google_adsense_strip_slot();
+    }
+}
+
+if (! function_exists('google_adsense_inline_slot')) {
+    /**
+     * বিবরণের ভিতর inline Slot ID।
+     */
+    function google_adsense_inline_slot(): ?string
+    {
+        return normalize_google_adsense_slot(optional(site_meta_record())->google_adsense_inline_slot ?? null)
+            ?? google_adsense_box_slot();
+    }
+}
+
 if (! function_exists('google_adsense_slot_for')) {
     /**
-     * প্রতি slot-এর Slot ID; খালি থাকলে site default।
+     * প্রতি slot-এর Slot ID; খালি থাকলে context অনুযায়ী site default।
+     *
+     * @param  'strip'|'box'|'inline'  $context
      */
-    function google_adsense_slot_for(?\App\Models\Advertisement $ad): ?string
+    function google_adsense_slot_for(?\App\Models\Advertisement $ad, string $context = 'strip'): ?string
     {
         $own = normalize_google_adsense_slot($ad?->google_ad_slot ?? null);
         if ($own !== null) {
             return $own;
         }
 
-        return google_adsense_default_slot();
+        return match ($context) {
+            'inline' => google_adsense_inline_slot(),
+            'box' => google_adsense_box_slot(),
+            default => google_adsense_strip_slot(),
+        };
     }
 }
 
 if (! function_exists('ad_show_google')) {
     /**
-     * ফ্রন্টে এই স্লটে Google Ad দেখানো হবে কিনা (প্রতি পেজে সীমা + একই slug একবার)।
+     * ফ্রন্টে Google Ad দেখানো — একই Slot ID পেজে একবার (AdSense নিয়ম)।
+     *
+     * @param  'strip'|'box'|'inline'  $context
      */
-    function ad_show_google(?\App\Models\Advertisement $ad): bool
+    function ad_show_google(?\App\Models\Advertisement $ad, string $context = 'strip'): bool
     {
         if (! $ad || ! $ad->displayUsesGoogleAd()) {
             return false;
         }
 
         static $claimed = [];
+        static $usedSlotIds = [];
 
         $key = (string) ($ad->slug ?? $ad->id);
         if (array_key_exists($key, $claimed)) {
             return $claimed[$key];
+        }
+
+        $slotId = google_adsense_slot_for($ad, $context);
+        if ($slotId && isset($usedSlotIds[$slotId])) {
+            return $claimed[$key] = false;
+        }
+
+        if ($slotId) {
+            $usedSlotIds[$slotId] = true;
         }
 
         return $claimed[$key] = true;

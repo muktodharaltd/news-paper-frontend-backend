@@ -28,8 +28,13 @@ $stripOuterClass = match (true) {
 };
 $stripBoxStyle = $ad ? $ad->slotBoxStyle('strip') : '';
 $boxStyle = $ad ? $ad->slotBoxStyle('box') : '';
+$googleContext = match ($variant) {
+    'sidebar' => 'box',
+    'inline' => 'inline',
+    default => 'strip',
+};
 $showLocal = $ad && $ad->displayUsesLocalAd();
-$showGoogle = $ad && ad_show_google($ad);
+$showGoogle = $ad && ad_show_google($ad, $googleContext);
 @endphp
 
 @if($showLocal)
@@ -54,12 +59,12 @@ $showGoogle = $ad && ad_show_google($ad);
     @if($isStrip)
         <div class="{{ $stripOuterClass }} {{ $wrapperClass }} w-full max-w-full min-w-0" data-ad-slot-root data-ad-google @if($isBelowMenu) data-ad-below-menu @endif @if($variant === 'header') id="header-ad-slot" @endif>
             <div class="container">
-                <x-google-ad-unit :ad="$ad" layout="strip" />
+                <x-google-ad-unit :ad="$ad" layout="strip" slot-context="strip" />
             </div>
         </div>
     @elseif($variant === 'sidebar')
         <div class="{{ $wrapperClass ?: 'shrink-0 w-full' }}" data-ad-slot-root data-ad-google>
-            <x-google-ad-unit :ad="$ad" layout="box" :class="$sidebarClass" />
+            <x-google-ad-unit :ad="$ad" layout="box" :class="$sidebarClass" slot-context="box" />
         </div>
     @elseif($variant === 'inline')
         @include('frontend.partials.detail-inline-ad', ['ad' => $ad])

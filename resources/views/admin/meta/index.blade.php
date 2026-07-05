@@ -177,7 +177,7 @@
                             <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
                             Google AdSense
                         </h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">সাইট জুড়ে Google Ad চালাতে Publisher Client ID দিন। Default Slot ID দিলে সব advertisement slot-এ (Local ad না থাকলে) Google দেখাবে — প্রতিটি slot-এ আলাদা Slot ID দেওয়া optional।</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">AdSense Client ID + Slot ID। <strong>গুরুত্বপূর্ণ:</strong> Google একই Slot ID পেজে একবারই ad দেখায় — তাই Strip, Box, Inline তিনটা আলাদা unit ID দিন (AdSense-এ ৩টি ad unit তৈরি করুন)।</p>
                     </div>
                     <div>
                         <label class="block text-sm font-normal text-slate-900 dark:text-white mb-2 ml-0.5">AdSense Client ID</label>
@@ -189,10 +189,24 @@
                         @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-normal text-slate-900 dark:text-white mb-2 ml-0.5">Default Google Slot ID <span class="text-slate-400 font-normal">(optional)</span></label>
+                        <label class="block text-sm font-normal text-slate-900 dark:text-white mb-2 ml-0.5">Strip / Banner Slot ID <span class="text-slate-400 font-normal">(header, below menu)</span></label>
                         <input type="text" name="google_adsense_default_slot" value="{{ old('google_adsense_default_slot', $meta->google_adsense_default_slot ?? '') }}" placeholder="2436228703" class="w-full max-w-lg px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-indigo-500 transition-all outline-none font-mono text-sm text-slate-900 dark:text-white">
-                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">AdSense → Ads → By ad unit → Slot ID। একবার দিলে সব advertisement slot-এ Local ad না থাকলে Google fallback চলবে। Test-এ একই ID সব slot-এ দিতে পারেন।</p>
                         @error('google_adsense_default_slot')
+                        <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-normal text-slate-900 dark:text-white mb-2 ml-0.5">Box / Sidebar Slot ID <span class="text-slate-400 font-normal">(hero_right, details_right)</span></label>
+                        <input type="text" name="google_adsense_box_slot" value="{{ old('google_adsense_box_slot', $meta->google_adsense_box_slot ?? '') }}" placeholder="2182248692" class="w-full max-w-lg px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-indigo-500 transition-all outline-none font-mono text-sm text-slate-900 dark:text-white">
+                        @error('google_adsense_box_slot')
+                        <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-normal text-slate-900 dark:text-white mb-2 ml-0.5">Inline Slot ID <span class="text-slate-400 font-normal">(বিবরণের ভিতর)</span></label>
+                        <input type="text" name="google_adsense_inline_slot" value="{{ old('google_adsense_inline_slot', $meta->google_adsense_inline_slot ?? '') }}" placeholder="AdSense-এ নতুন In-article unit" class="w-full max-w-lg px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-indigo-500 transition-all outline-none font-mono text-sm text-slate-900 dark:text-white">
+                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">AdSense → Ads → Display ads → In-article / Rectangle unit। না দিলে Box Slot ID ব্যবহার হবে।</p>
+                        @error('google_adsense_inline_slot')
                         <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>

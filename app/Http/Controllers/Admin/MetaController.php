@@ -49,6 +49,8 @@ class MetaController extends Controller
             'publisher_label' => ['nullable', 'string', 'max:255'],
             'google_adsense_client' => ['nullable', 'string', 'max:64'],
             'google_adsense_default_slot' => ['nullable', 'string', 'max:32'],
+            'google_adsense_box_slot' => ['nullable', 'string', 'max:32'],
+            'google_adsense_inline_slot' => ['nullable', 'string', 'max:32'],
         ]);
 
         $meta = SiteMeta::first();
@@ -99,6 +101,22 @@ class MetaController extends Controller
                 ->withInput();
         }
         $validated['google_adsense_default_slot'] = $defaultSlot;
+
+        $boxSlot = normalize_google_adsense_slot($validated['google_adsense_box_slot'] ?? null);
+        if (($validated['google_adsense_box_slot'] ?? '') !== '' && $validated['google_adsense_box_slot'] !== null && $boxSlot === null) {
+            return redirect()->back()
+                ->withErrors(['google_adsense_box_slot' => 'Box Slot ID শুধু সংখ্যা হতে হবে।'])
+                ->withInput();
+        }
+        $validated['google_adsense_box_slot'] = $boxSlot;
+
+        $inlineSlot = normalize_google_adsense_slot($validated['google_adsense_inline_slot'] ?? null);
+        if (($validated['google_adsense_inline_slot'] ?? '') !== '' && $validated['google_adsense_inline_slot'] !== null && $inlineSlot === null) {
+            return redirect()->back()
+                ->withErrors(['google_adsense_inline_slot' => 'Inline Slot ID শুধু সংখ্যা হতে হবে।'])
+                ->withInput();
+        }
+        $validated['google_adsense_inline_slot'] = $inlineSlot;
 
         if ($meta) {
             $meta->update($validated);
