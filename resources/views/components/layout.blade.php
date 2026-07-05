@@ -357,19 +357,22 @@
     </style>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @php
+    $__siteIconPlaceholder = site_icon_placeholder_css($siteMeta ?? null);
+    @endphp
     @if ($__primaryOk)
     <style>
         :root {
             --color-primary: {{ $__primary }} !important;
             --site-name: "{{ site_name_bn() }}";
-            --site-icon-url: @if(filled(optional($siteMeta)->site_icon)) url("{{ storage_image_url($siteMeta->site_icon) }}") @else none @endif;
+            --site-icon-url: {!! $__siteIconPlaceholder !!};
         }
     </style>
     @else
     <style>
         :root {
             --site-name: "{{ site_name_bn() }}";
-            --site-icon-url: @if(filled(optional($siteMeta)->site_icon)) url("{{ storage_image_url($siteMeta->site_icon) }}") @else none @endif;
+            --site-icon-url: {!! $__siteIconPlaceholder !!};
         }
     </style>
     @endif

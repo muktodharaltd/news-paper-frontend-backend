@@ -180,6 +180,157 @@ if (! function_exists('photocard_icon_src')) {
     }
 }
 
+if (! function_exists('site_icon_local_path')) {
+    /** সাইট আইকন ফাইলের absolute path (public বা storage disk)। */
+    function site_icon_local_path(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return null;
+        }
+
+        $path = ltrim($path, '/');
+        $publicFile = public_path($path);
+
+        if (is_file($publicFile)) {
+            return $publicFile;
+        }
+
+        $storageFile = storage_path('app/public/' . $path);
+
+        if (is_file($storageFile)) {
+            return $storageFile;
+        }
+
+        return null;
+    }
+}
+
+if (! function_exists('site_icon_embed_payload')) {
+    /**
+     * Placeholder-এর জন্য ছোট inline icon bytes (GD resize; আলাদা request লাগে না)।
+     *
+     * @return array{mime: string, bytes: string}|null
+     */
+    function site_icon_embed_payload(string $full): ?array
+    {
+        $raw = @file_get_contents($full);
+
+        if ($raw === false || $raw === '') {
+            return null;
+        }
+
+        $mime = @mime_content_type($full) ?: 'image/png';
+
+        if (str_contains($mime, 'svg')) {
+            return ['mime' => 'image/svg+xml', 'bytes' => $raw];
+        }
+
+        if (! function_exists('imagecreatefromstring') || ! function_exists('imagepng')) {
+            return strlen($raw) <= 120 * 1024 ? ['mime' => $mime, 'bytes' => $raw] : null;
+        }
+
+        $src = @imagecreatefromstring($raw);
+
+        if (! $src) {
+            return strlen($raw) <= 120 * 1024 ? ['mime' => $mime, 'bytes' => $raw] : null;
+        }
+
+        $width = imagesx($src);
+        $height = imagesy($src);
+        $maxSide = 128;
+        $scale = min($maxSide / max(1, $width), $maxSide / max(1, $height), 1);
+        $targetW = max(1, (int) round($width * $scale));
+        $targetH = max(1, (int) round($height * $scale));
+
+        $dst = imagecreatetruecolor($targetW, $targetH);
+
+        if (! $dst) {
+            imagedestroy($src);
+
+            return strlen($raw) <= 120 * 1024 ? ['mime' => $mime, 'bytes' => $raw] : null;
+        }
+
+        imagealphablending($dst, false);
+        imagesavealpha($dst, true);
+        $transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);
+        imagefilledrectangle($dst, 0, 0, $targetW, $targetH, $transparent);
+        imagecopyresampled($dst, $src, 0, 0, 0, 0, $targetW, $targetH, $width, $height);
+        imagedestroy($src);
+
+        ob_start();
+        imagepng($dst, null, 7);
+        $png = ob_get_clean();
+        imagedestroy($dst);
+
+        if (! is_string($png) || $png === '') {
+            return null;
+        }
+
+        return ['mime' => 'image/png', 'bytes' => $png];
+    }
+}
+
+if (! function_exists('site_icon_data_uri')) {
+    /**
+     * সাইট আইকন — inline data URI (আলাদা HTTP request ছাড়া, placeholder তৎক্ষণাৎ)।
+     */
+    function site_icon_data_uri(?\App\Models\SiteMeta $meta = null): ?string
+    {
+        static $cache = [];
+
+        $meta = $meta ?? site_meta_record();
+        $path = $meta?->site_icon;
+
+        if (! filled($path)) {
+            return null;
+        }
+
+        $full = site_icon_local_path($path);
+
+        if (! $full) {
+            return null;
+        }
+
+        $cacheKey = $full . ':' . (string) @filemtime($full);
+
+        if (isset($cache[$cacheKey])) {
+            return $cache[$cacheKey];
+        }
+
+        $payload = site_icon_embed_payload($full);
+
+        if (! $payload) {
+            return $cache[$cacheKey] = null;
+        }
+
+        return $cache[$cacheKey] = 'data:' . $payload['mime'] . ';base64,' . base64_encode($payload['bytes']);
+    }
+}
+
+if (! function_exists('site_icon_placeholder_css')) {
+    /** img-placeholder ::before — CSS background-image value (তৎক্ষণাৎ দেখায়)। */
+    function site_icon_placeholder_css(?\App\Models\SiteMeta $meta = null): string
+    {
+        $dataUri = site_icon_data_uri($meta);
+
+        if ($dataUri !== null) {
+            return 'url("' . $dataUri . '")';
+        }
+
+        $path = ($meta ?? site_meta_record())?->site_icon;
+
+        if (filled($path)) {
+            return 'url("' . e(storage_image_url($path)) . '")';
+        }
+
+        return 'none';
+    }
+}
+
 if (! function_exists('store_public_upload')) {
     /**
      * আপলোড ফাইল public/{directory}/ এ সেভ করে DB তে রাখার জন্য রিলেটিভ পাথ রিটার্ন করে।
