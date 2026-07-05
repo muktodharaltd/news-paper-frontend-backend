@@ -81,6 +81,11 @@
     <link rel="preload" href="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ e($adsenseClient) }}" as="script" crossorigin>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ e($adsenseClient) }}" crossorigin="anonymous"></script>
     @endif
+    @php $headerAdPreload = ad_slot_image_href('header'); @endphp
+    @if($headerAdPreload)
+    <link rel="preload" as="image" href="{{ $headerAdPreload }}" fetchpriority="high">
+    @endif
+    @stack('preload')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script>
         (function() {
@@ -288,7 +293,14 @@
     @endphp
 
     <style>
-        /* below-menu Google ad — প্রথম paint-এই জায়গা reserve (CLS রোধ) */
+        /* অ্যাড — প্রথম paint-এই slot reserve; shimmer নয়, সাদা বক্স */
+        .ad-slot-frame.ad-slot-local,
+        .ad-slot-frame.ad-slot-google {
+            background: #fff !important;
+        }
+        .detail-inline-ad .ad-slot-frame {
+            min-height: 1px;
+        }
         [data-ad-slot-root][data-ad-below-menu] .container .ad-slot-frame.ad-slot-google:not([data-ad-layout="box"]) {
             display: block !important;
             position: relative !important;

@@ -64,7 +64,7 @@
                 src="{{ storage_image_url($ad->image ?: $ad->image_mobile) }}"
                 alt="{{ $ad->caption ?? 'বিজ্ঞাপন' }}"
                 loading="eager"
-                decoding="async"
+                decoding="sync"
                 @if($attributes->get('fetchpriority')) fetchpriority="{{ $attributes->get('fetchpriority') }}" @endif
                 onload="this.closest('.img-placeholder')?.classList.remove('img-placeholder')"
                 {{ $attributes->except(['autoplay', 'muted', 'loop', 'controls', 'fetchpriority'])->merge(['class' => 'max-w-full min-w-0']) }}

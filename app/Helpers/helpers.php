@@ -838,6 +838,21 @@ if (! function_exists('ad_slot')) {
     }
 }
 
+if (! function_exists('ad_slot_image_href')) {
+    /** Local ad image URL for preload (view count বাড়ায় না)। */
+    function ad_slot_image_href(string $slug): ?string
+    {
+        $ad = \App\Models\Advertisement::getBySlug($slug);
+        if (! $ad || ! $ad->displayUsesLocalAd()) {
+            return null;
+        }
+
+        $path = $ad->image ?: $ad->image_mobile;
+
+        return filled($path) ? storage_image_url($path) : null;
+    }
+}
+
 if (! function_exists('inject_post_detail_ads_between_paragraphs')) {
     /**
      * বিবরণ HTML-এর ভিতরে ইনলাইন অ্যাড বসায় — প্রতি N প্যারার পর একটি (ডিফল্ট ৩)।

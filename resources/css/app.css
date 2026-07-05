@@ -248,6 +248,69 @@ html.browser-desktop-site #site-header-shell {
     font-weight: 400 !important;
 }
 
+/* বিবরণ ইনলাইন অ্যাড — sidebar box footprint; উপর/নিচে অতিরিক্ত gap নয় */
+.detail-inline-ad {
+    width: 100%;
+    max-width: min(100%, 300px);
+    margin: 0.7em auto 0 !important;
+    padding: 0 !important;
+}
+
+.detail-inline-ad + p,
+.post-description .detail-inline-ad + p,
+.prose .detail-inline-ad + p {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.detail-inline-ad .ad-slot-frame.ad-slot-local,
+.detail-inline-ad .ad-slot-frame.ad-slot-google[data-ad-layout="box"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: unset !important;
+}
+
+.detail-inline-ad .ad-slot-frame.ad-slot-local img,
+.detail-inline-ad .ad-slot-frame.ad-slot-local .ad-slot-media,
+.detail-inline-ad .ad-slot-frame.ad-slot-local video {
+    display: block;
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: 225px !important;
+    object-fit: contain !important;
+    object-position: center;
+}
+
+.detail-inline-ad .ad-slot-frame.ad-slot-google[data-ad-layout="box"] ins.adsbygoogle {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-width: 100% !important;
+    max-height: 225px !important;
+}
+
+.detail-inline-ad .ad-slot-frame.ad-slot-google[data-ad-layout="box"] iframe {
+    max-width: 100% !important;
+    max-height: 225px !important;
+}
+
+@media (max-width: 767px) {
+    .detail-inline-ad .ad-slot-frame.ad-slot-local img,
+    .detail-inline-ad .ad-slot-frame.ad-slot-local .ad-slot-media,
+    .detail-inline-ad .ad-slot-frame.ad-slot-local video,
+    .detail-inline-ad .ad-slot-frame.ad-slot-google[data-ad-layout="box"] ins.adsbygoogle,
+    .detail-inline-ad .ad-slot-frame.ad-slot-google[data-ad-layout="box"] iframe {
+        max-height: var(--ad-mobile-max-height, 240px) !important;
+    }
+}
+
 @utility text-caption {
     color: var(--color-caption);
 }

@@ -6,6 +6,12 @@ $postShareImage = $post->image
     : '';
 $postShareDescription = share_meta_description($post->description, $post->title);
 @endphp
+@php $detailsMenuAdPreload = ad_slot_image_href('details_below_menu'); @endphp
+@if($detailsMenuAdPreload)
+@push('preload')
+<link rel="preload" as="image" href="{{ $detailsMenuAdPreload }}" fetchpriority="high">
+@endpush
+@endif
 <x-layout>
     <x-slot:title>{{ $postShareTitle }}</x-slot>
     @if($postShareImage !== '')

@@ -1,3 +1,9 @@
+@php $homeMenuAdPreload = ad_slot_image_href('below_menu'); @endphp
+@if($homeMenuAdPreload)
+@push('preload')
+<link rel="preload" as="image" href="{{ $homeMenuAdPreload }}" fetchpriority="high">
+@endpush
+@endif
 <x-layout>
     <x-slot:title>
         {{ site_browser_title() }}

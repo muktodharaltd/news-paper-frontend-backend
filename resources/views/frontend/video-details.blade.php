@@ -19,7 +19,13 @@ $videoShareImage = $video->image
     ? share_og_image_url($video->image, $video->id, $videoOgVersion)
     : ($videoThumb ? str_replace('http://', 'https://', $videoThumb) : null);
 $videoShareDescription = share_meta_description($video->description ?? '', $video->title);
+$videoMenuAdPreload = ad_slot_image_href('video_details_below_menu');
 @endphp
+@if($videoMenuAdPreload)
+@push('preload')
+<link rel="preload" as="image" href="{{ $videoMenuAdPreload }}" fetchpriority="high">
+@endpush
+@endif
 <x-layout>
     <x-slot:title>{{ $videoShareTitle }}</x-slot>
     @if($videoShareImage)
@@ -178,7 +184,7 @@ $videoShareDescription = share_meta_description($video->description ?? '', $vide
                         </div>
 
                         @if($video->description)
-                        <div class="prose prose-lg max-w-none text-desc text-lg md:text-xl font-medium leading-relaxed">
+                        <div class="post-description prose prose-lg max-w-none text-desc text-lg md:text-xl font-medium leading-relaxed">
                             {!! detail_page_description_with_ads($video->description, 'video_details') !!}
                         </div>
                         @endif

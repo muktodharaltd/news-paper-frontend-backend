@@ -9,7 +9,13 @@ $galleryShareImage = $galleryFirstImage
     ? share_og_image_url($galleryFirstImage->image, $gallery->id, $galleryOgVersion)
     : '';
 $galleryShareDescription = share_meta_description($gallery->description ?? '', $gallery->title);
+$galleryMenuAdPreload = ad_slot_image_href('gallery_details_below_menu');
 @endphp
+@if($galleryMenuAdPreload)
+@push('preload')
+<link rel="preload" as="image" href="{{ $galleryMenuAdPreload }}" fetchpriority="high">
+@endpush
+@endif
 <x-layout>
     <x-slot:title>{{ $galleryShareTitle }}</x-slot>
     @if($galleryShareImage !== '')
@@ -160,7 +166,7 @@ $galleryShareDescription = share_meta_description($gallery->description ?? '', $
                         </div>
 
                         @if($gallery->description)
-                        <div class="w-full prose prose-lg max-w-none text-desc text-lg md:text-xl font-medium leading-relaxed">
+                        <div class="post-description w-full prose prose-lg max-w-none text-desc text-lg md:text-xl font-medium leading-relaxed">
                             {!! detail_page_description_with_ads($gallery->description, 'gallery_details') !!}
                         </div>
                         @endif

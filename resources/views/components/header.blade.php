@@ -33,7 +33,7 @@
                         x-transition:leave="transition ease-in duration-300 transform"
                         x-transition:leave-start="translate-x-0"
                         x-transition:leave-end="-translate-x-full"
-                        class="fixed inset-y-0 left-0 w-80 bg-primary text-white z-[210] shadow-2xl pt-2 px-6 pb-6 overflow-y-auto"
+                        class="fixed inset-y-0 left-0 w-70 bg-primary text-white z-[210] shadow-2xl pt-2 px-5 pb-6 overflow-y-auto"
                         x-cloak>
                         <div class="flex justify-end items-center mb-2 pb-2 border-b border-white/20">
                             <button @click="showSidebar = false" class="p-2 text-white hover:bg-white/10 transition-colors">
