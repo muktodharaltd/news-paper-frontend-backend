@@ -840,13 +840,13 @@ if (! function_exists('ad_slot')) {
 
 if (! function_exists('inject_post_detail_ads_between_paragraphs')) {
     /**
-     * বিবরণ HTML-এর ভিতরে ইনলাইন অ্যাড বসায় — প্রতি N প্যারার পর একটি (ডিফল্ট ৪)।
+     * বিবরণ HTML-এর ভিতরে ইনলাইন অ্যাড বসায় — প্রতি N প্যারার পর একটি (ডিফল্ট ৩)।
      *
      * @param  string  $html  WYSIWYG বিবরণ HTML
      * @param  array<int, string>  $adBlocks  রেন্ডার করা HTML ব্লক (খালি স্ট্রিং বাদ)
      * @param  int  $paragraphInterval  কত প্যারার পর পর একটি অ্যাড
      */
-    function inject_post_detail_ads_between_paragraphs(string $html, array $adBlocks, int $paragraphInterval = 4): string
+    function inject_post_detail_ads_between_paragraphs(string $html, array $adBlocks, int $paragraphInterval = 3): string
     {
         $adBlocks = array_values(array_filter(
             $adBlocks,

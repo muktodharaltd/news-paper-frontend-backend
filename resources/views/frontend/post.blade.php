@@ -353,7 +353,7 @@ $postShareDescription = share_meta_description($post->description, $post->title)
                                     $descriptionForBody = detail_page_description_with_ads($descRaw, 'details');
                                     @endphp
 
-                                    <!-- নিউজ ডেসক্রিপশন — প্রতি ৪ প্যারার পর ইনলাইন অ্যাড (মোবাইল + ডেস্কটপ) -->
+                                    <!-- নিউজ ডেসক্রিপশন — প্রতি ৩ প্যারার পর ইনলাইন অ্যাড -->
                                     <div class="post-description prose prose-lg max-w-none text-title text-[1.25rem] md:text-[1.3125rem] font-extralight pt-4 px-0 lg:px-[125px] text-justify leading-[1.5]">
                                         {!! $descriptionForBody !!}
                                     </div>

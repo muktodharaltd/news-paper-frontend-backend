@@ -352,23 +352,8 @@ body {
     line-height: 1.6;
 }
 
-/* হেডার অ্যাড + স্টিকি মেনু — স্ক্রলে গ্যাপ ছাড়া একসাথে */
+/* হেডার অ্যাড — স্ক্রলে সাথে উঠে যায়; শুধু মেনু বার sticky */
 @media (min-width: 768px) {
-    #header-ad-slot.header-ad-sticky {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
-        max-width: 100%;
-        z-index: 60;
-        padding: 0 !important;
-        margin: 0;
-        background: #fff;
-        overflow-x: clip;
-        box-sizing: border-box;
-    }
-
     #header-ad-slot {
         max-width: 100%;
         overflow-x: clip;
