@@ -1222,7 +1222,7 @@ if (! function_exists('site_name')) {
 }
 
 if (! function_exists('site_browser_title')) {
-    /** Browser tab title — site_title প্রাধান্য, না থাকলে site_name। */
+    /** Browser tab title — site_title প্রাধান্য, না থাকলে বাংলা site_name_bn, তারপর site_name। */
     function site_browser_title(): string
     {
         $meta = site_meta_record();
@@ -1232,7 +1232,175 @@ if (! function_exists('site_browser_title')) {
             return $title;
         }
 
-        return site_name();
+        return site_name_bn();
+    }
+}
+
+if (! function_exists('site_search_sitelinks')) {
+    /**
+     * Google Search sitelinks — গুরুত্বপূর্ণ category লিংক (সর্বশেষ + ৫টি category)।
+     *
+     * @return array<int, array{name: string, url: string}>
+     */
+    function site_search_sitelinks(): array
+    {
+        static $resolved = null;
+
+        if ($resolved !== null) {
+            return $resolved;
+        }
+
+        $definitions = [
+            ['label' => 'সর্বশেষ', 'route' => 'latest'],
+            ['label' => 'আন্তর্জাতিক', 'names' => ['আন্তর্জাতিক'], 'slug' => 'international'],
+            ['label' => 'জাতীয়', 'names' => ['জাতীয়', 'জাতীয়'], 'slug' => 'national'],
+            ['label' => 'চট্টগ্রাম', 'names' => ['চট্টগ্রাম'], 'slug' => 'chattogram'],
+            ['label' => 'কক্সবাজার', 'names' => ['কক্সবাজার'], 'slug' => 'coxbazar'],
+            ['label' => 'খেলাধুলা', 'names' => ['খেলাধুলা', 'খেলা'], 'slug' => 'sports'],
+        ];
+
+        $categories = collect();
+        try {
+            $categories = \App\Models\Category::query()
+                ->where('status', 'active')
+                ->where('type', 'post')
+                ->get(['name', 'slug']);
+        } catch (\Throwable) {
+            // DB unavailable (e.g. during install)
+        }
+
+        $links = [];
+
+        foreach ($definitions as $definition) {
+            if (($definition['route'] ?? '') === 'latest') {
+                try {
+                    $links[] = [
+                        'name' => $definition['label'],
+                        'url' => route('latest'),
+                    ];
+                } catch (\Throwable) {
+                    // Route not registered yet
+                }
+
+                continue;
+            }
+
+            $category = null;
+            foreach ($definition['names'] ?? [] as $name) {
+                $category = $categories->first(fn ($item) => $item->name === $name);
+                if ($category) {
+                    break;
+                }
+            }
+
+            if (! $category && ! empty($definition['slug'])) {
+                $category = $categories->first(fn ($item) => $item->slug === $definition['slug']);
+            }
+
+            if (! $category) {
+                continue;
+            }
+
+            try {
+                $links[] = [
+                    'name' => $definition['label'],
+                    'url' => route('category.show', $category->slug),
+                ];
+            } catch (\Throwable) {
+                continue;
+            }
+        }
+
+        $resolved = $links;
+
+        return $resolved;
+    }
+}
+
+if (! function_exists('site_structured_data_json')) {
+    /**
+     * Google Search site name — WebSite + NewsMediaOrganization JSON-LD (বাংলা নাম)।
+     */
+    function site_structured_data_json(): string
+    {
+        $meta = site_meta_record();
+        $siteUrl = front_home_url();
+        $name = site_name_bn();
+        $englishName = trim((string) (optional($meta)->site_name ?? ''));
+        $alternateNames = array_values(array_unique(array_filter([
+            $englishName !== '' && $englishName !== $name ? $englishName : null,
+            ($domain = site_domain()) !== '' && $domain !== $name ? $domain : null,
+        ])));
+
+        $website = [
+            '@type' => 'WebSite',
+            '@id' => $siteUrl . '#website',
+            'url' => $siteUrl,
+            'name' => $name,
+            'publisher' => ['@id' => $siteUrl . '#organization'],
+        ];
+
+        if ($alternateNames !== []) {
+            $website['alternateName'] = $alternateNames;
+        }
+
+        $sitelinks = site_search_sitelinks();
+        if ($sitelinks !== []) {
+            $website['hasPart'] = array_map(
+                static fn (int $index): array => ['@id' => $siteUrl . '#nav-' . ($index + 1)],
+                array_keys($sitelinks),
+            );
+        }
+
+        $organization = [
+            '@type' => 'NewsMediaOrganization',
+            '@id' => $siteUrl . '#organization',
+            'name' => $name,
+            'url' => $siteUrl,
+        ];
+
+        $logo = trim((string) (optional($meta)->site_logo ?? ''));
+        if ($logo !== '') {
+            $organization['logo'] = [
+                '@type' => 'ImageObject',
+                'url' => str_replace('http://', 'https://', storage_image_url($logo)),
+            ];
+        }
+
+        $graph = [$website, $organization];
+
+        foreach ($sitelinks as $index => $link) {
+            $graph[] = [
+                '@type' => 'SiteNavigationElement',
+                '@id' => $siteUrl . '#nav-' . ($index + 1),
+                'name' => $link['name'],
+                'url' => $link['url'],
+                'isPartOf' => ['@id' => $siteUrl . '#website'],
+            ];
+        }
+
+        if ($sitelinks !== []) {
+            $graph[] = [
+                '@type' => 'ItemList',
+                '@id' => $siteUrl . '#primary-nav',
+                'name' => 'মূল বিভাগ',
+                'itemListElement' => array_map(
+                    static fn (int $index, array $link): array => [
+                        '@type' => 'ListItem',
+                        'position' => $index + 1,
+                        'name' => $link['name'],
+                        'url' => $link['url'],
+                    ],
+                    array_keys($sitelinks),
+                    $sitelinks,
+                ),
+            ];
+        }
+
+        return json_encode([
+            '@context' => 'https://schema.org',
+            '@graph' => $graph,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
     }
 }
 

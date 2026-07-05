@@ -2,7 +2,7 @@
 \Carbon\Carbon::setLocale('bn');
 $categoryName = $gallery->category->name ?? 'গ্যালারি';
 
-$galleryShareTitle = $gallery->title . ' - ' . (site_name());
+$galleryShareTitle = $gallery->title . ' - ' . (site_name_bn());
 $galleryFirstImage = $gallery->images->first();
 $galleryOgVersion = $gallery->updated_at?->getTimestamp() ?? $gallery->id;
 $galleryShareImage = $galleryFirstImage
@@ -21,7 +21,6 @@ $galleryShareDescription = share_meta_description($gallery->description ?? '', $
     @endif
     <x-slot:ogImageAlt>{{ $gallery->title }}</x-slot>
     <x-slot:shareUrl>{{ route('gallery.show', $gallery->slug) }}</x-slot>
-    <x-slot:articlePublishedTime>{{ $gallery->created_at?->toIso8601String() }}</x-slot>
 
         <div class="py-4 md:py-10 min-h-screen bg-white">
             <div class="container">
@@ -117,7 +116,7 @@ $galleryShareDescription = share_meta_description($gallery->description ?? '', $
                     @if(!empty(optional($siteMeta)->site_logo))
                         <img src="{{ storage_image_url($siteMeta->site_logo) }}" alt="Logo" style="height: 80px; width: auto;">
                     @else
-                        <h1 style="font-size: 24px; font-weight: bold; color: #e11d48;">{{ site_name() }}</h1>
+                        <h1 style="font-size: 24px; font-weight: bold; color: #e11d48;">{{ site_name_bn() }}</h1>
                     @endif
                 </div>
 

@@ -1,5 +1,5 @@
 <x-layout>
-    <x-slot:title>Unicode to Bijoy - Bangla text Converter - {{ site_name() }}</x-slot>
+    <x-slot:title>Unicode to Bijoy - Bangla text Converter - {{ site_name_bn() }}</x-slot>
 
     {{-- Bijoy font — শুধু এই পেজে; সাইটের global font পরিবর্তন হয় না --}}
     <link rel="preload" href="{{ asset('fonts/SutonnyMJ.ttf') }}" as="font" type="font/ttf" crossorigin>

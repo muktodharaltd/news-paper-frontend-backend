@@ -7,11 +7,11 @@
                 @if(!empty(optional($siteMeta)->site_logo))
                 <img src="{{ storage_image_url($siteMeta->site_logo) }}" alt="{{ optional($siteMeta)->site_name ?? 'Logo' }}" class="h-14 md:h-20 w-auto object-contain" onerror="this.style.display='none'; this.nextElementSibling && this.nextElementSibling.classList.remove('hidden');">
                 <h2 class="text-4xl md:text-5xl font-black serif tracking-tighter uppercase underline decoration-primary underline-offset-8 decoration-4 hidden">
-                    {{ site_name() }}
+                    {{ site_name_bn() }}
                 </h2>
                 @else
                 <h2 class="text-4xl md:text-5xl font-black serif tracking-tighter uppercase underline decoration-primary underline-offset-8 decoration-4">
-                    {{ site_name() }}
+                    {{ site_name_bn() }}
                 </h2>
                 @endif
             </a>

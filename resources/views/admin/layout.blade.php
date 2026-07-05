@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <x-font-preload />
     <title>@yield('title', 'Admin Panel')</title>
+    @if(!empty(optional($siteMeta)->site_icon))
+    <link rel="icon" href="{{ storage_image_url($siteMeta->site_icon) }}" type="image/png">
+    @endif
     <x-admin.theme-init />
     @vite(['resources/css/app.css', 'resources/js/admin-theme.js'])
     <style>

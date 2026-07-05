@@ -1,5 +1,5 @@
 <x-layout>
-    <x-slot:title>অনুসন্ধান: {{ $query ?: request('q') }} - {{ site_name() }}</x-slot>
+    <x-slot:title>অনুসন্ধান: {{ $query ?: request('q') }} - {{ site_name_bn() }}</x-slot>
 
     <div class="py-4 md:py-10 min-h-screen">
         <div class="container">

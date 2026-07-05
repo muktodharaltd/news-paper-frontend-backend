@@ -5,6 +5,8 @@
 
         <x-ad-slot-display slug="below_menu" variant="banner" />
 
+        <x-site-sitelinks-nav />
+
         <div class="container">
             <!-- Hero Section -->
             <section class="flex flex-col lg:grid lg:grid-cols-[2.7fr_6.3fr_3fr] gap-6 lg:gap-3 mb-3 border-b border-custom pb-3">

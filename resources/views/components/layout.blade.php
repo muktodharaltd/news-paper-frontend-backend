@@ -210,7 +210,8 @@
     {{-- Open Graph: শেয়ার প্রিভিউ — ইমেজ + টাইটেল; image-এর নিচের site name/domain বাদ (নিচের URL domain থাকবে) --}}
     @php
     $hasShareMeta = (isset($metaImage) && $metaImage !== '') || isset($ogTitle);
-    $shareTitle = $ogTitle ?? $title ?? site_name();
+    $publicSiteName = site_name_bn();
+    $shareTitle = $ogTitle ?? $title ?? $publicSiteName;
     $sharePageUrl = isset($shareUrl) && trim((string) $shareUrl) !== '' ? trim((string) $shareUrl) : url()->current();
     $shareDescription = isset($ogDescription) ? trim((string) $ogDescription) : '';
     $shareImageUrlHttps = isset($metaImage) ? trim((string) $metaImage) : '';
@@ -232,7 +233,7 @@
     <meta property="og:type" content="article">
     <meta property="og:url" content="{{ $sharePageUrl }}">
     <meta property="og:title" content="{{ $shareTitle }}">
-    <meta property="og:site_name" content="{{ site_name() }}">
+    <meta property="og:site_name" content="{{ $publicSiteName }}">
     @if($shareDescription !== '')
     <meta property="og:description" content="{{ $shareDescription }}">
     <meta name="description" content="{{ $shareDescription }}">
@@ -250,9 +251,6 @@
     <link rel="image_src" href="{{ $shareImageUrlHttps }}">
     <meta name="twitter:image" content="{{ $shareImageUrlHttps }}">
     @endif
-    @if(isset($articlePublishedTime) && trim((string) $articlePublishedTime) !== '')
-    <meta property="article:published_time" content="{{ trim((string) $articlePublishedTime) }}">
-    @endif
     <meta property="og:locale" content="{{ str_replace('_', '-', app()->getLocale()) }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $shareTitle }}">
@@ -263,17 +261,17 @@
     {{-- সাধারণ পেজ: শেয়ার করলে সাইটের ডিফল্ট --}}
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:title" content="{{ $title ?? site_name() }}">
+    <meta property="og:title" content="{{ $title ?? $publicSiteName }}">
     @if(!empty(optional($siteMeta)->site_description))
     <meta property="og:description" content="{{ $siteMeta->site_description }}">
     @endif
     @if(!empty(optional($siteMeta)->site_logo))
     <meta property="og:image" content="{{ storage_image_url($siteMeta->site_logo) }}">
     @endif
-    <meta property="og:site_name" content="{{ site_name() }}">
+    <meta property="og:site_name" content="{{ $publicSiteName }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="{{ url()->current() }}">
-    <meta name="twitter:title" content="{{ $title ?? site_name() }}">
+    <meta name="twitter:title" content="{{ $title ?? $publicSiteName }}">
     @if(!empty(optional($siteMeta)->site_description))
     <meta name="twitter:description" content="{{ $siteMeta->site_description }}">
     @endif
@@ -281,6 +279,8 @@
     <meta name="twitter:image" content="{{ storage_image_url($siteMeta->site_logo) }}">
     @endif
     @endif
+
+    <script type="application/ld+json">{!! site_structured_data_json() !!}</script>
 
     @php
     $__primary = optional($siteMeta)->primary_color ?? null;
@@ -346,13 +346,13 @@
     <style>
         :root {
             --color-primary: {{ $__primary }} !important;
-            --site-name: "{{ site_name() }}";
+            --site-name: "{{ site_name_bn() }}";
         }
     </style>
     @else
     <style>
         :root {
-            --site-name: "{{ site_name() }}";
+            --site-name: "{{ site_name_bn() }}";
         }
     </style>
     @endif

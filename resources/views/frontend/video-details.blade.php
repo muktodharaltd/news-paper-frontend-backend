@@ -8,7 +8,7 @@ if ($video->youtube_link) {
 }
 $categoryName = $video->category->name ?? 'ভিডিও';
 
-$videoShareTitle = $video->title . ' - ' . (site_name());
+$videoShareTitle = $video->title . ' - ' . (site_name_bn());
 
 $videoThumb = $video->image ? storage_image_url($video->image) : null;
 if (!$videoThumb && $youtubeId) {
@@ -31,7 +31,6 @@ $videoShareDescription = share_meta_description($video->description ?? '', $vide
     @endif
     <x-slot:ogImageAlt>{{ $video->title }}</x-slot>
     <x-slot:shareUrl>{{ route('videos.show', $video->slug) }}</x-slot>
-    <x-slot:articlePublishedTime>{{ $video->created_at?->toIso8601String() }}</x-slot>
 
         <div class="py-4 md:py-10 min-h-screen bg-white">
             <div class="container">
@@ -135,7 +134,7 @@ $videoShareDescription = share_meta_description($video->description ?? '', $vide
                     @if(!empty(optional($siteMeta)->site_logo))
                         <img src="{{ storage_image_url($siteMeta->site_logo) }}" alt="Logo" style="height: 80px; width: auto;">
                     @else
-                        <h1 style="font-size: 24px; font-weight: bold; color: #e11d48;">{{ site_name() }}</h1>
+                        <h1 style="font-size: 24px; font-weight: bold; color: #e11d48;">{{ site_name_bn() }}</h1>
                     @endif
                 </div>
 

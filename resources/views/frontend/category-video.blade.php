@@ -1,5 +1,5 @@
 <x-layout>
-    <x-slot:title>{{ $category->name }} - {{ site_name() }}</x-slot>
+    <x-slot:title>{{ $category->name }} - {{ site_name_bn() }}</x-slot>
 
         <x-ad-slot-display slug="category_below_menu" variant="banner" />
 
