@@ -1,8 +1,68 @@
 /**
  * Google AdSense — slot-এর ভিতরে clamp (local ad size-এর বেশি হবে না)।
+ * Priority strip (header/below-menu) তৎক্ষণাৎ push; বাকি viewport-এ lazy push।
  */
 (function () {
     const isMobile = () => window.matchMedia('(max-width: 767px)').matches;
+
+    function pushAdUnit(ins) {
+        if (!ins || ins.getAttribute('data-ad-pushed') === '1') {
+            return;
+        }
+
+        ins.setAttribute('data-ad-pushed', '1');
+
+        try {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch {
+            return;
+        }
+    }
+
+    function isPriorityUnit(ins) {
+        const root = ins.closest('[data-ad-slot-root]');
+
+        return Boolean(
+            root?.matches('#header-ad-slot, [data-ad-below-menu]')
+            || root?.closest('#header-ad-slot, [data-ad-below-menu]'),
+        );
+    }
+
+    function bootAdPush() {
+        const units = [...document.querySelectorAll('ins.adsbygoogle[data-ad-client]')];
+
+        units.filter(isPriorityUnit).forEach(pushAdUnit);
+
+        const deferred = units.filter(
+            (ins) => !isPriorityUnit(ins) && ins.getAttribute('data-ad-pushed') !== '1',
+        );
+
+        if (!deferred.length) {
+            return;
+        }
+
+        if (!('IntersectionObserver' in window)) {
+            deferred.forEach(pushAdUnit);
+
+            return;
+        }
+
+        const io = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) {
+                        return;
+                    }
+
+                    pushAdUnit(entry.target);
+                    io.unobserve(entry.target);
+                });
+            },
+            { rootMargin: '320px 0px', threshold: 0 },
+        );
+
+        deferred.forEach((ins) => io.observe(ins));
+    }
 
     function frameLimit(frame, mobile) {
         const styles = getComputedStyle(frame);
@@ -352,6 +412,8 @@
     }
 
     function boot() {
+        bootAdPush();
+
         document.querySelectorAll('ins.adsbygoogle[data-ad-client]').forEach((ins) => {
             watchUnit(ins);
         });

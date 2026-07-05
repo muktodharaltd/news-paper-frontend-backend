@@ -175,6 +175,7 @@ $postShareDescription = share_meta_description($post->description, $post->title)
                                     .no-print,
                                     [class*="ad-"],
                                     [class*="advertisement"],
+                                    .img-placeholder::before,
                                     .img-placeholder::after {
                                         display: none !important;
                                     }

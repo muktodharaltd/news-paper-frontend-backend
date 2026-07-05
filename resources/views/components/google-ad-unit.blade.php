@@ -2,27 +2,25 @@
     'ad',
     'layout' => 'strip',
     'class' => '',
-    'fullWidthResponsive' => false,
+    'fullWidthResponsive' => null,
 ])
 
 @php
 $client = google_adsense_client();
 $slotId = google_adsense_slot_for($ad);
 $boxStyle = $ad ? $ad->slotBoxStyle($layout === 'strip' ? 'strip' : 'box') : '';
-$responsive = filter_var($fullWidthResponsive, FILTER_VALIDATE_BOOLEAN);
-$adDims = $ad ? $ad->mediaSpecDimensions() : null;
-$adWidth = $adDims['width'] ?? null;
-$adHeight = $adDims['height'] ?? null;
-$adFormat = $layout === 'strip'
-    ? ($responsive ? 'auto' : 'horizontal')
-    : 'rectangle';
+$googleOpts = ad_google_unit_options($ad, $layout === 'strip' ? 'strip' : 'box');
+$responsive = $fullWidthResponsive === null
+    ? $googleOpts['responsive']
+    : filter_var($fullWidthResponsive, FILTER_VALIDATE_BOOLEAN);
+$adFormat = $googleOpts['format'];
+$adWidth = $googleOpts['width'];
+$adHeight = $googleOpts['height'];
+$insMinHeight = $googleOpts['ins_min_height'];
 $frameClass = $layout === 'strip'
     ? 'ad-slot-frame ad-slot-google w-full min-w-0 block relative overflow-hidden bg-white'
     : 'ad-slot-frame ad-slot-google block overflow-hidden bg-white w-full min-w-0 relative';
-$insStyle = 'display:block;width:100%;';
-if ($adHeight) {
-    $insStyle .= "min-height:{$adHeight}px;";
-}
+$insStyle = "display:block;width:100%;min-height:{$insMinHeight}px;";
 @endphp
 
 @if($client && $slotId && $ad)
@@ -40,7 +38,5 @@ if ($adHeight) {
          data-ad-width="{{ $adWidth }}"
          data-ad-height="{{ $adHeight }}"
          @endif></ins>
-    {{-- Google AdSense standard — HTML parse হওয়ার সাথে সাথে push --}}
-    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
 </div>
 @endif

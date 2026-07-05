@@ -788,6 +788,44 @@ if (! function_exists('ad_slot_box_style')) {
     }
 }
 
+if (! function_exists('ad_google_unit_options')) {
+    /**
+     * Google AdSense unit — responsive; upload spec ≠ request size (sidebar ~300px)।
+     *
+     * @param  'strip'|'box'  $layout
+     * @return array{format: string, responsive: bool, width: ?int, height: ?int, ins_min_height: int}
+     */
+    function ad_google_unit_options(?\App\Models\Advertisement $ad, string $layout = 'strip'): array
+    {
+        $dims = ad_media_spec_dimensions($ad?->mediaSpec());
+
+        if ($layout === 'strip') {
+            $minH = $dims['height'] ?? 90;
+
+            return [
+                'format' => 'auto',
+                'responsive' => true,
+                'width' => null,
+                'height' => null,
+                'ins_min_height' => $minH,
+            ];
+        }
+
+        $specW = max(1, $dims['width'] ?? 300);
+        $specH = max(1, $dims['height'] ?? 250);
+        $displayW = min(300, $specW);
+        $minH = (int) max(90, min(250, round($displayW * $specH / $specW)));
+
+        return [
+            'format' => 'auto',
+            'responsive' => true,
+            'width' => null,
+            'height' => null,
+            'ins_min_height' => $minH,
+        ];
+    }
+}
+
 if (! function_exists('ad_has_media')) {
     /**
      * অ্যাডে দেখানোর মতো মিডিয়া আছে কিনা (ইমেজ, GIF, ভিডিও ফাইল, YouTube)।

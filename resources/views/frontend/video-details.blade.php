@@ -87,7 +87,7 @@ $videoMenuAdPreload = ad_slot_image_href('video_details_below_menu');
                         .mt-12, .flex.items-center.gap-3, .ad-section, 
                         .flex.flex-col.gap-1.pb-2, .sub-nav, .search-overlay,
                         .no-print,
-                        [class*="ad-"], [class*="advertisement"], .img-placeholder::after {
+                        [class*="ad-"], [class*="advertisement"], .img-placeholder::before, .img-placeholder::after {
                             display: none !important;
                         }
 
