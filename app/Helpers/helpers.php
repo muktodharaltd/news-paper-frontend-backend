@@ -718,28 +718,21 @@ if (! function_exists('google_adsense_inline_slot')) {
 
 if (! function_exists('google_adsense_slot_for')) {
     /**
-     * প্রতি slot-এর Slot ID; খালি থাকলে context অনুযায়ী site default।
+     * প্রতি advertisement slot-এর নিজস্ব Google Slot ID (Admin-এ save করা)।
+     * এক পেজে সব ad দেখাতে প্রতিটি slot-এ আলাদা ID দিন।
      *
-     * @param  'strip'|'box'|'inline'  $context
+     * @param  'strip'|'box'|'inline'  $context  (শুধু ad_show_google dedup-এ ব্যবহার)
      */
     function google_adsense_slot_for(?\App\Models\Advertisement $ad, string $context = 'strip'): ?string
     {
-        $own = normalize_google_adsense_slot($ad?->google_ad_slot ?? null);
-        if ($own !== null) {
-            return $own;
-        }
-
-        return match ($context) {
-            'inline' => google_adsense_inline_slot(),
-            'box' => google_adsense_box_slot(),
-            default => google_adsense_strip_slot(),
-        };
+        return normalize_google_adsense_slot($ad?->google_ad_slot ?? null);
     }
 }
 
 if (! function_exists('ad_show_google')) {
     /**
-     * ফ্রন্টে Google Ad দেখানো — একই Slot ID পেজে একবার (AdSense নিয়ম)।
+     * ফ্রন্টে Google Ad দেখানো।
+     * আলাদা Slot ID থাকলে পেজে সব slot দেখাবে; একই ID দুইবার থাকলে শুধু প্রথমটা।
      *
      * @param  'strip'|'box'|'inline'  $context
      */

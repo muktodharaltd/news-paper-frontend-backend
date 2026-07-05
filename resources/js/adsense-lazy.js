@@ -152,7 +152,9 @@
             return;
         }
 
-        ins.style.display = 'block';
+        ins.style.display = 'flex';
+        ins.style.alignItems = 'center';
+        ins.style.justifyContent = 'center';
         ins.style.width = '100%';
         ins.style.overflow = 'hidden';
 
@@ -188,15 +190,16 @@
     }
 
     function centerIframe(iframe, width, height) {
-        iframe.style.position = 'absolute';
-        iframe.style.left = '50%';
-        iframe.style.top = '50%';
-        iframe.style.transform = 'translate(-50%, -50%)';
+        iframe.style.position = 'relative';
+        iframe.style.left = 'auto';
+        iframe.style.top = 'auto';
+        iframe.style.right = 'auto';
+        iframe.style.transform = 'none';
         iframe.style.width = width + 'px';
         iframe.style.height = height + 'px';
         iframe.style.maxWidth = width + 'px';
         iframe.style.maxHeight = height + 'px';
-        iframe.style.marginInline = '0';
+        iframe.style.marginInline = 'auto';
         iframe.style.display = 'block';
         iframe.style.border = '0';
     }
@@ -223,15 +226,22 @@
             return;
         }
 
+        ins.style.display = 'flex';
+        ins.style.alignItems = 'center';
+        ins.style.justifyContent = 'center';
+
         ins.querySelectorAll('div').forEach((host) => {
-            host.style.position = 'absolute';
-            host.style.inset = '0';
+            host.style.display = 'flex';
+            host.style.alignItems = 'center';
+            host.style.justifyContent = 'center';
+            host.style.position = 'relative';
+            host.style.inset = 'auto';
             host.style.width = '100%';
             host.style.maxWidth = '100%';
             host.style.height = '100%';
             host.style.maxHeight = '100%';
             host.style.overflow = 'hidden';
-            host.style.margin = '0';
+            host.style.margin = '0 auto';
         });
     }
 
@@ -252,17 +262,7 @@
         const ins = iframe.closest('ins.adsbygoogle');
         syncGoogleStripHosts(ins);
 
-        iframe.style.position = 'absolute';
-        iframe.style.left = '50%';
-        iframe.style.top = '50%';
-        iframe.style.transform = 'translate(-50%, -50%)';
-        iframe.style.width = fitted.width + 'px';
-        iframe.style.height = fitted.height + 'px';
-        iframe.style.maxWidth = fitted.width + 'px';
-        iframe.style.maxHeight = fitted.height + 'px';
-        iframe.style.margin = '0';
-        iframe.style.display = 'block';
-        iframe.style.border = '0';
+        centerIframe(iframe, fitted.width, fitted.height);
     }
 
     function fitFilledIframe(iframe, frame, targetH, layout) {
@@ -340,9 +340,10 @@
 
         finish();
 
-        window.setTimeout(() => clampIframe(ins), 50);
-        window.setTimeout(() => clampIframe(ins), 200);
-        window.setTimeout(() => clampIframe(ins), 800);
+        window.requestAnimationFrame(() => clampIframe(ins));
+        window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => clampIframe(ins));
+        });
     }
 
     function clampAllBoxAds() {
@@ -352,15 +353,15 @@
     }
 
     function boot() {
-        document.querySelectorAll('ins.adsbygoogle[data-ad-client]').forEach((ins) => {
+        document.querySelectorAll('ins.adsbygoogle[data-ad-client]:not([data-ad-watched])').forEach((ins) => {
             watchUnit(ins);
         });
     }
 
+    boot();
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', boot, { once: true });
-    } else {
-        boot();
     }
 
     let resizeTimer = 0;

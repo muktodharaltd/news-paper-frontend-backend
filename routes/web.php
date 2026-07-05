@@ -186,6 +186,7 @@ Route::prefix('admin')
             });
 
             Route::middleware('feature:advertisements.manage')->group(function (): void {
+                Route::put('/advertisements/google-slots', [App\Http\Controllers\Admin\AdvertisementController::class, 'updateBulkGoogleSlots'])->name('advertisements.google-slots.update');
                 Route::get('/advertisements', [App\Http\Controllers\Admin\AdvertisementController::class, 'index'])->name('advertisements.index');
                 Route::get('/advertisements/{id}/edit', [App\Http\Controllers\Admin\AdvertisementController::class, 'edit'])->name('advertisements.edit');
                 Route::put('/advertisements/{id}', [App\Http\Controllers\Admin\AdvertisementController::class, 'update'])->name('advertisements.update');

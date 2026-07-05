@@ -267,12 +267,32 @@ html.browser-desktop-site #site-header-shell {
 .detail-inline-ad .ad-slot-frame.ad-slot-google[data-ad-layout="box"] {
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     overflow: hidden;
     height: auto !important;
     min-height: 0 !important;
     aspect-ratio: unset !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.detail-inline-ad .ad-slot-frame.ad-slot-google[data-ad-layout="box"] ins.adsbygoogle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-width: 100% !important;
+    max-height: 225px !important;
+}
+
+.detail-inline-ad .ad-slot-frame.ad-slot-google[data-ad-layout="box"] iframe {
+    display: block !important;
+    width: auto !important;
+    margin-inline: auto !important;
 }
 
 .detail-inline-ad .ad-slot-frame.ad-slot-local img,
@@ -285,20 +305,6 @@ html.browser-desktop-site #site-header-shell {
     max-height: 225px !important;
     object-fit: contain !important;
     object-position: center;
-}
-
-.detail-inline-ad .ad-slot-frame.ad-slot-google[data-ad-layout="box"] ins.adsbygoogle {
-    display: block !important;
-    width: 100% !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-width: 100% !important;
-    max-height: 225px !important;
-}
-
-.detail-inline-ad .ad-slot-frame.ad-slot-google[data-ad-layout="box"] iframe {
-    max-width: 100% !important;
-    max-height: 225px !important;
 }
 
 @media (max-width: 767px) {
@@ -464,7 +470,9 @@ body > ins.adsbygoogle:not(.adsbygoogle-noablate) {
     max-width: min(100%, var(--ad-max-width, 1300px)) !important;
     position: relative !important;
     overflow: hidden !important;
-    display: block !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     margin-left: auto;
     margin-right: auto;
 }
@@ -516,7 +524,9 @@ body > ins.adsbygoogle:not(.adsbygoogle-noablate) {
     max-width: min(100%, var(--ad-max-width, 1300px)) !important;
     position: relative !important;
     overflow: hidden !important;
-    display: block !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     margin-left: auto;
     margin-right: auto;
 }
@@ -590,7 +600,9 @@ body > ins.adsbygoogle:not(.adsbygoogle-noablate) {
 }
 
 [data-ad-slot-root][data-ad-below-menu] .container .ad-slot-frame ins.adsbygoogle {
-    display: block !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     position: absolute !important;
     inset: 0 !important;
     overflow: hidden !important;
@@ -598,29 +610,35 @@ body > ins.adsbygoogle:not(.adsbygoogle-noablate) {
     height: 100% !important;
     max-width: 100% !important;
     max-height: 100% !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     box-sizing: border-box;
 }
 
 [data-ad-slot-root][data-ad-below-menu] .container .ad-slot-frame ins.adsbygoogle > div,
 [data-ad-slot-root][data-ad-below-menu] .container .ad-slot-frame ins.adsbygoogle > div > div {
-    position: absolute !important;
-    inset: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    inset: auto !important;
     width: 100% !important;
     max-width: 100% !important;
     height: 100% !important;
     max-height: 100% !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     overflow: hidden !important;
 }
 
 [data-ad-slot-root][data-ad-below-menu] .container .ad-slot-frame iframe {
     border: 0;
     aspect-ratio: auto !important;
-    left: 0 !important;
+    display: block !important;
+    margin-inline: auto !important;
+    max-width: 100% !important;
+    position: relative !important;
+    left: auto !important;
     right: auto !important;
-    max-width: none !important;
-    margin: 0 !important;
+    transform: none !important;
 }
 
 /* Google + Local — একই slot সাইজ (config max); Google বেশি জায়গা নেয় না */
@@ -632,20 +650,39 @@ body > ins.adsbygoogle:not(.adsbygoogle-noablate) {
 }
 
 [data-ad-slot-root] .ad-slot-frame.ad-slot-google ins.adsbygoogle {
-    display: block;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     max-width: 100%;
     max-height: 100%;
     width: 100%;
     height: 100%;
     margin-inline: auto;
-    object-fit: contain;
-    object-position: center;
     overflow: hidden;
 }
 
-[data-ad-slot-root] .ad-slot-frame.ad-slot-google iframe {
+[data-ad-slot-root] .ad-slot-frame.ad-slot-google ins.adsbygoogle > div,
+[data-ad-slot-root] .ad-slot-frame.ad-slot-google ins.adsbygoogle > div > div {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
     max-width: 100% !important;
     max-height: 100% !important;
+    margin-inline: auto !important;
+}
+
+[data-ad-slot-root] .ad-slot-frame.ad-slot-google iframe {
+    display: block !important;
+    margin-inline: auto !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
 }
 
 [data-ad-slot-root]:not([data-ad-below-menu])
@@ -654,19 +691,17 @@ body > ins.adsbygoogle:not(.adsbygoogle-noablate) {
 [data-ad-slot-root][data-ad-below-menu]
     .ad-slot-frame.ad-slot-google[data-ad-layout="box"]
     iframe {
-    display: block;
-    width: 100% !important;
-    max-width: 100% !important;
-    max-height: var(--ad-max-height, 100%) !important;
+    width: auto !important;
     height: auto !important;
-    margin-inline: auto;
     object-fit: contain;
     object-position: center;
 }
 
-/* Sidebar/box Google ad — frame-এর ভিতরে পুরো ad (local object-cover এর মতো) */
+/* Sidebar/box Google ad — frame-এর ভিতরে center */
 [data-ad-slot-root] .ad-slot-frame.ad-slot-google[data-ad-layout="box"] {
-    display: block;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     position: relative;
     overflow: hidden;
 }
@@ -789,10 +824,11 @@ body > ins.adsbygoogle:not(.adsbygoogle-noablate) {
     [data-ad-slot-root]:not([data-ad-below-menu])
         .ad-slot-frame.ad-slot-google:not([data-ad-layout="box"])
         iframe {
-        width: 100%;
+        width: auto !important;
+        max-width: 100% !important;
         max-height: var(--ad-mobile-max-height, var(--ad-max-height, 90px));
-        aspect-ratio: 16 / 9;
-        height: auto;
+        height: auto !important;
+        margin-inline: auto !important;
     }
 
     [data-ad-slot-root]
@@ -841,8 +877,12 @@ body > ins.adsbygoogle:not(.adsbygoogle-noablate) {
     [data-ad-slot-root][data-ad-below-menu] .container .ad-slot-frame iframe {
         border: 0;
         aspect-ratio: auto !important;
-        left: 0 !important;
-        max-width: none !important;
-        margin: 0 !important;
+        display: block !important;
+        width: auto !important;
+        max-width: 100% !important;
+        margin-inline: auto !important;
+        position: relative !important;
+        left: auto !important;
+        transform: none !important;
     }
 }

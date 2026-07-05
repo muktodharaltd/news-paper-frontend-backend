@@ -177,7 +177,7 @@
                             <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
                             Google AdSense
                         </h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">AdSense Client ID + Slot ID। <strong>গুরুত্বপূর্ণ:</strong> Google একই Slot ID পেজে একবারই ad দেখায় — তাই Strip, Box, Inline তিনটা আলাদা unit ID দিন (AdSense-এ ৩টি ad unit তৈরি করুন)।</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">AdSense Client ID + Slot ID। সব ad slot-এ আলাদা ID দিতে <strong>Advertisement</strong> পেজের <strong>Google Slot ID (সব slot)</strong> ফর্ম ব্যবহার করুন।</p>
                     </div>
                     <div>
                         <label class="block text-sm font-normal text-slate-900 dark:text-white mb-2 ml-0.5">AdSense Client ID</label>

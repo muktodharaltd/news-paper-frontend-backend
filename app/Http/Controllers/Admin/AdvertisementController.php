@@ -24,10 +24,21 @@ class AdvertisementController extends Controller
             ->where('google_ad_slot', '!=', '')
             ->count();
 
+        $duplicateGoogleSlotIds = Advertisement::query()
+            ->where('slug', '!=', 'home_video')
+            ->whereNotNull('google_ad_slot')
+            ->where('google_ad_slot', '!=', '')
+            ->select('google_ad_slot')
+            ->selectRaw('COUNT(*) as slot_count')
+            ->groupBy('google_ad_slot')
+            ->havingRaw('COUNT(*) > 1')
+            ->pluck('google_ad_slot');
+
         return view('admin.advertisements.index', compact(
             'advertisements',
             'googleClientConfigured',
             'googleSlotCount',
+            'duplicateGoogleSlotIds',
         ));
     }
 
@@ -146,6 +157,43 @@ class AdvertisementController extends Controller
         return redirect()
             ->route('admin.advertisements.edit', $advertisement->id)
             ->with('success', 'Google Ad সেটিংস সংরক্ষণ করা হয়েছে।');
+    }
+
+    public function updateBulkGoogleSlots(Request $request): RedirectResponse
+    {
+        if (! filled(google_adsense_client())) {
+            return redirect()->back()
+                ->withErrors(['google_slots' => 'আগে SEO & Meta সেটিংসে Google AdSense Client ID সেট করুন।']);
+        }
+
+        $request->validate([
+            'google_slots' => 'required|array',
+            'google_slots.*' => 'nullable|string|max:32|regex:/^\d*$/',
+        ]);
+
+        $updated = 0;
+
+        foreach ($request->input('google_slots', []) as $id => $rawSlot) {
+            $advertisement = Advertisement::find((int) $id);
+            if (! $advertisement || $advertisement->slug === 'home_video') {
+                continue;
+            }
+
+            $slotId = preg_replace('/\D+/', '', trim((string) $rawSlot));
+
+            $advertisement->update([
+                'google_ad_slot' => $slotId !== '' ? $slotId : null,
+                'google_ad_auto' => $slotId !== '',
+            ]);
+
+            if ($slotId !== '') {
+                $updated++;
+            }
+        }
+
+        return redirect()
+            ->route('admin.advertisements.index')
+            ->with('success', "Google Slot ID সংরক্ষণ হয়েছে ({$updated} slot)। প্রতিটি slot-এ আলাদা ID দিন — এক পেজে সব ad দেখাবে।");
     }
 
     public function update(Request $request, int $id): RedirectResponse

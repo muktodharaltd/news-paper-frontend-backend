@@ -79,7 +79,8 @@
     <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin>
     <link rel="preconnect" href="https://googleads.g.doubleclick.net" crossorigin>
     <link rel="preload" href="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ e($adsenseClient) }}" as="script" crossorigin>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ e($adsenseClient) }}" crossorigin="anonymous"></script>
+    <script>window.adsbygoogle=window.adsbygoogle||[];</script>
+    <script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ e($adsenseClient) }}" crossorigin="anonymous"></script>
     @endif
     @php $headerAdPreload = ad_slot_image_href('header'); @endphp
     @if($headerAdPreload)
@@ -332,10 +333,12 @@
             }
         }
         [data-ad-slot-root][data-ad-below-menu] .container .ad-slot-frame ins.adsbygoogle {
-            display: block !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
             width: 100% !important;
             overflow: hidden !important;
-            margin: 0 !important;
+            margin: 0 auto !important;
         }
         @media (min-width: 768px) {
             [data-ad-slot-root][data-ad-below-menu] .container .ad-slot-frame ins.adsbygoogle {
