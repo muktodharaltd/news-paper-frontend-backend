@@ -1,7 +1,7 @@
 <x-layout>
     <x-slot:title>{{ $category->name }} - {{ site_name_bn() }}</x-slot>
 
-        <x-ad-slot-display slug="category_below_menu" variant="banner" />
+        <x-ad-slot-display slug="video_category_below_menu" variant="banner" />
 
         <div class="pt-2 pb-4 md:pt-4 md:pb-10 min-h-screen">
             <div class="container">
@@ -153,6 +153,19 @@
                         </script>
                         @endif
                     </div>
+
+                    @php
+                    $adVideoCategoryRight1 = ad_slot('video_category_right_1');
+                    $adVideoCategoryRight2 = ad_slot('video_category_right_2');
+                    $hasVideoCategorySidebarAds = ad_should_display($adVideoCategoryRight1)
+                        || ad_should_display($adVideoCategoryRight2);
+                    @endphp
+                    @if($hasVideoCategorySidebarAds)
+                    <div class="flex flex-col gap-4 w-full min-w-0 md:justify-self-end">
+                        <x-ad-slot-display :ad="$adVideoCategoryRight1" variant="sidebar" sidebar-class="max-w-[300px] mx-auto" />
+                        <x-ad-slot-display :ad="$adVideoCategoryRight2" variant="sidebar" sidebar-class="max-w-[300px] mx-auto" />
+                    </div>
+                    @endif
 
                 </section>
             </div>

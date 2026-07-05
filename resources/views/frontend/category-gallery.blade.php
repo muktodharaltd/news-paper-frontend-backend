@@ -1,7 +1,7 @@
 <x-layout>
     <x-slot:title>{{ $category->name }} - {{ site_name_bn() }}</x-slot>
 
-        <x-ad-slot-display slug="category_below_menu" variant="banner" />
+        <x-ad-slot-display slug="gallery_category_below_menu" variant="banner" />
 
         <div class="pt-2 pb-4 md:pt-4 md:pb-10 min-h-screen">
             <div class="container">
@@ -134,6 +134,19 @@
                         </script>
                         @endif
                     </div>
+
+                    @php
+                    $adGalleryCategoryRight1 = ad_slot('gallery_category_right_1');
+                    $adGalleryCategoryRight2 = ad_slot('gallery_category_right_2');
+                    $hasGalleryCategorySidebarAds = ad_should_display($adGalleryCategoryRight1)
+                        || ad_should_display($adGalleryCategoryRight2);
+                    @endphp
+                    @if($hasGalleryCategorySidebarAds)
+                    <div class="flex flex-col gap-4 w-full min-w-0 md:justify-self-end">
+                        <x-ad-slot-display :ad="$adGalleryCategoryRight1" variant="sidebar" sidebar-class="max-w-[300px] mx-auto" />
+                        <x-ad-slot-display :ad="$adGalleryCategoryRight2" variant="sidebar" sidebar-class="max-w-[300px] mx-auto" />
+                    </div>
+                    @endif
 
                 </section>
             </div>

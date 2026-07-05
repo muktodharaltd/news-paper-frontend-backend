@@ -22,6 +22,8 @@ $galleryShareDescription = share_meta_description($gallery->description ?? '', $
     <x-slot:ogImageAlt>{{ $gallery->title }}</x-slot>
     <x-slot:shareUrl>{{ route('gallery.show', $gallery->slug) }}</x-slot>
 
+    <x-ad-slot-display slug="gallery_details_below_menu" variant="banner" wrapper-class="no-print" />
+
         <div class="py-4 md:py-10 min-h-screen bg-white">
             <div class="container">
 
@@ -159,7 +161,7 @@ $galleryShareDescription = share_meta_description($gallery->description ?? '', $
 
                         @if($gallery->description)
                         <div class="w-full prose prose-lg max-w-none text-desc text-lg md:text-xl font-medium leading-relaxed">
-                            {!! $gallery->description !!}
+                            {!! detail_page_description_with_ads($gallery->description, 'gallery_details') !!}
                         </div>
                         @endif
 
@@ -184,11 +186,22 @@ $galleryShareDescription = share_meta_description($gallery->description ?? '', $
                     </div>
 
                     <!-- দ্বিতীয় কলাম (৩ ভাগ) -->
-                    <div class="flex flex-col gap-10 w-full">
+                    <div class="hidden lg:flex flex-col gap-10 w-full min-w-0">
+                        @php
+                        $adGalleryRight1 = ad_slot('gallery_details_right_1');
+                        $adGalleryRight2 = ad_slot('gallery_details_right_2');
+                        $hasGallerySidebarAds = ad_should_display($adGalleryRight1) || ad_should_display($adGalleryRight2);
+                        @endphp
+                        @if($hasGallerySidebarAds)
+                        <div class="flex flex-col gap-4 w-full min-w-0 ad-section">
+                            <x-ad-slot-display :ad="$adGalleryRight1" variant="sidebar" />
+                            <x-ad-slot-display :ad="$adGalleryRight2" variant="sidebar" />
+                        </div>
+                        @endif
 
                         <!-- আরও গ্যালারি (সাইডবার) -->
                         @if($related->isNotEmpty())
-                        <div class="hidden lg:flex flex-col gap-6 pt-5">
+                        <div class="flex flex-col gap-6 pt-5">
                             <div class="flex items-center gap-3 border-b border-slate-100 pb-2">
                                 <div class="w-1.5 h-6 bg-primary"></div>
                                 <h3 class="text-xl font-bold serif text-title">আরও গ্যালারি</h3>

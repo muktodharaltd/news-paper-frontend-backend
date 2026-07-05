@@ -12,7 +12,15 @@
 @php
 $ad = $ad ?? ($slug ? ad_slot($slug) : null);
 $isStrip = in_array($variant, ['header', 'banner'], true);
-$isBelowMenu = in_array($slug ?? $ad?->slug, ['below_menu', 'category_below_menu', 'details_below_menu'], true);
+$isBelowMenu = in_array($slug ?? $ad?->slug, [
+    'below_menu',
+    'category_below_menu',
+    'details_below_menu',
+    'video_details_below_menu',
+    'gallery_details_below_menu',
+    'gallery_category_below_menu',
+    'video_category_below_menu',
+], true);
 $stripOuterClass = match (true) {
     $variant === 'header' => 'hidden w-full md:flex md:py-0',
     $isBelowMenu => 'pt-0 pb-0 w-full',

@@ -713,18 +713,11 @@ if (! function_exists('ad_show_google')) {
         }
 
         static $claimed = [];
+
         $key = (string) ($ad->slug ?? $ad->id);
         if (array_key_exists($key, $claimed)) {
             return $claimed[$key];
         }
-
-        static $count = 0;
-        $max = max(1, (int) config('advertisement_slots.google_ads_max_per_page', 2));
-        if ($count >= $max) {
-            return $claimed[$key] = false;
-        }
-
-        $count++;
 
         return $claimed[$key] = true;
     }
@@ -847,18 +840,19 @@ if (! function_exists('ad_slot')) {
 
 if (! function_exists('inject_post_detail_ads_between_paragraphs')) {
     /**
-     * মোবাইল ইনলাইন অ্যাড: প্রথম অ্যাড প্রথম ও দ্বিতীয় প্যারার মাঝের ফাঁকে, দ্বিতীয়টা শেষের আগের ফাঁকে
-     * (কমপক্ষে দুটি `</p>` থাকলে) — একদম শুরু বা একদম শেষে নয়।
+     * বিবরণ HTML-এর ভিতরে ইনলাইন অ্যাড বসায় — প্রতি N প্যারার পর একটি (ডিফল্ট ৪)।
      *
      * @param  string  $html  WYSIWYG বিবরণ HTML
-     * @param  string  $adBlock1  রেন্ডার করা HTML (খালি হলে বসবে না)
-     * @param  string  $adBlock2  রেন্ডার করা HTML
+     * @param  array<int, string>  $adBlocks  রেন্ডার করা HTML ব্লক (খালি স্ট্রিং বাদ)
+     * @param  int  $paragraphInterval  কত প্যারার পর পর একটি অ্যাড
      */
-    function inject_post_detail_ads_between_paragraphs(string $html, string $adBlock1, string $adBlock2): string
+    function inject_post_detail_ads_between_paragraphs(string $html, array $adBlocks, int $paragraphInterval = 4): string
     {
-        $adBlock1 = $adBlock1 !== '' ? $adBlock1 : '';
-        $adBlock2 = $adBlock2 !== '' ? $adBlock2 : '';
-        if ($adBlock1 === '' && $adBlock2 === '') {
+        $adBlocks = array_values(array_filter(
+            $adBlocks,
+            static fn ($block) => is_string($block) && $block !== ''
+        ));
+        if ($adBlocks === []) {
             return $html;
         }
 
@@ -867,8 +861,9 @@ if (! function_exists('inject_post_detail_ads_between_paragraphs')) {
         }
 
         $tagMatches = $matches[0];
-        $n = count($tagMatches);
-        if ($n < 2) {
+        $paragraphCount = count($tagMatches);
+        $interval = max(1, $paragraphInterval);
+        if ($paragraphCount < $interval) {
             return $html;
         }
 
@@ -878,21 +873,12 @@ if (! function_exists('inject_post_detail_ads_between_paragraphs')) {
 
         /** @var array<int, string> */
         $at = [];
+        $adIndex = 0;
 
-        if ($adBlock1 !== '') {
-            $pos = $endAfter($tagMatches[0]);
-            $at[$pos] = ($at[$pos] ?? '') . $adBlock1;
-        }
-
-        if ($adBlock2 !== '') {
-            if ($n === 2) {
-                $pos = $endAfter($tagMatches[0]);
-                $at[$pos] = ($at[$pos] ?? '') . $adBlock2;
-            } else {
-                $idx = $n - 2;
-                $pos = $endAfter($tagMatches[$idx]);
-                $at[$pos] = ($at[$pos] ?? '') . $adBlock2;
-            }
+        for ($afterParagraph = $interval; $afterParagraph <= $paragraphCount && $adIndex < count($adBlocks); $afterParagraph += $interval) {
+            $pos = $endAfter($tagMatches[$afterParagraph - 1]);
+            $at[$pos] = ($at[$pos] ?? '') . $adBlocks[$adIndex];
+            $adIndex++;
         }
 
         krsort($at, SORT_NUMERIC);
@@ -901,6 +887,41 @@ if (! function_exists('inject_post_detail_ads_between_paragraphs')) {
         }
 
         return $html;
+    }
+}
+
+if (! function_exists('detail_inline_ad_blocks')) {
+    /**
+     * @param  array<int, string>  $slugs
+     * @return array<int, string>
+     */
+    function detail_inline_ad_blocks(array $slugs): array
+    {
+        $blocks = [];
+        foreach ($slugs as $slug) {
+            $ad = ad_slot($slug);
+            if (ad_should_display($ad)) {
+                $blocks[] = view('frontend.partials.detail-inline-ad', ['ad' => $ad])->render();
+            }
+        }
+
+        return $blocks;
+    }
+}
+
+if (! function_exists('detail_page_description_with_ads')) {
+    function detail_page_description_with_ads(?string $html, string $inlineSlugPrefix): string
+    {
+        $slugs = [];
+        for ($i = 1; $i <= 4; $i++) {
+            $slugs[] = "{$inlineSlugPrefix}_inline_{$i}";
+        }
+
+        $descRaw = strip_empty_post_description_paragraphs($html ?? '');
+
+        return tighten_post_description_paragraph_spacing(
+            inject_post_detail_ads_between_paragraphs($descRaw, detail_inline_ad_blocks($slugs))
+        );
     }
 }
 

@@ -1,39 +1,18 @@
 <?php
 
-namespace Database\Seeders;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-use App\Models\Advertisement;
-use Illuminate\Database\Seeder;
-
-class AdvertisementSeeder extends Seeder
+return new class extends Migration
 {
-    /**
-     * Fixed ad slots. Rows are recreated; run only on fresh/demo DB (wipes existing ad uploads refs).
-     */
-    public function run(): void
+    public function up(): void
     {
-        if (! \Schema::hasTable('advertisements')) {
+        if (! Schema::hasTable('advertisements')) {
             return;
         }
 
         $slots = [
-            ['slug' => 'header', 'name' => 'হেডার (লোগো উপরে)'],
-            ['slug' => 'below_menu', 'name' => 'মেনুর নিচে'],
-            ['slug' => 'category_below_menu', 'name' => 'ক্যাটাগরি – মেনুর নিচে'],
-            ['slug' => 'hero_right_1', 'name' => 'হোম – ডান কলাম উপরের অ্যাড'],
-            ['slug' => 'hero_right_3', 'name' => 'হোম – ডান কলাম (মিনি সেকশনের নিচে)'],
-            ['slug' => 'hero_right_2', 'name' => 'হোম – ডান কলাম নিচের অ্যাড'],
-            ['slug' => 'hero_below', 'name' => 'হোম – হিরো নিচে (বর্ডার নিচে)'],
-            ['slug' => 'home_video', 'name' => 'হোম – রাজনীতি সেকশনের ওপরে ভিডিও'],
-            ['slug' => 'details_below_menu', 'name' => 'নিউজ ডিটেইল – মেনুর নিচে'],
-            ['slug' => 'details_right_1', 'name' => 'ডিটেইল – ডান কলাম ১'],
-            ['slug' => 'details_right_2', 'name' => 'ডিটেইল – ডান কলাম ২'],
-            ['slug' => 'details_inline_1', 'name' => 'ডিটেইল – বিবরণ ইনলাইন ১'],
-            ['slug' => 'details_inline_2', 'name' => 'ডিটেইল – বিবরণ ইনলাইন ২'],
-            ['slug' => 'details_inline_3', 'name' => 'ডিটেইল – বিবরণ ইনলাইন ৩'],
-            ['slug' => 'details_inline_4', 'name' => 'ডিটেইল – বিবরণ ইনলাইন ৪'],
-            ['slug' => 'category_right_1', 'name' => 'ক্যাটাগরি – ডান কলাম ১'],
-            ['slug' => 'category_right_2', 'name' => 'ক্যাটাগরি – ডান কলাম ২'],
             ['slug' => 'video_details_below_menu', 'name' => 'ভিডিও ডিটেইল – মেনুর নিচে'],
             ['slug' => 'video_details_right_1', 'name' => 'ভিডিও ডিটেইল – ডান কলাম ১'],
             ['slug' => 'video_details_right_2', 'name' => 'ভিডিও ডিটেইল – ডান কলাম ২'],
@@ -56,21 +35,57 @@ class AdvertisementSeeder extends Seeder
             ['slug' => 'video_category_right_2', 'name' => 'ভিডিও ক্যাটাগরি – ডান কলাম ২'],
         ];
 
-        // Remove any old rows that are not part of the fixed slots (e.g. from previous seeder).
-        Advertisement::query()->delete();
-
         foreach ($slots as $slot) {
-            $now = now();
-            Advertisement::create([
+            if (DB::table('advertisements')->where('slug', $slot['slug'])->exists()) {
+                continue;
+            }
+
+            $row = [
                 'slug' => $slot['slug'],
                 'name' => $slot['name'],
                 'image' => null,
                 'link' => null,
                 'caption' => null,
                 'video_youtube_id' => null,
-                'starts_at' => $now,
-                'ends_at' => $now->copy()->addYear(),
-            ]);
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            if (Schema::hasColumn('advertisements', 'image_mobile')) {
+                $row['image_mobile'] = null;
+            }
+
+            DB::table('advertisements')->insert($row);
         }
     }
-}
+
+    public function down(): void
+    {
+        if (! Schema::hasTable('advertisements')) {
+            return;
+        }
+
+        DB::table('advertisements')->whereIn('slug', [
+            'video_details_below_menu',
+            'video_details_right_1',
+            'video_details_right_2',
+            'video_details_inline_1',
+            'video_details_inline_2',
+            'video_details_inline_3',
+            'video_details_inline_4',
+            'gallery_details_below_menu',
+            'gallery_details_right_1',
+            'gallery_details_right_2',
+            'gallery_details_inline_1',
+            'gallery_details_inline_2',
+            'gallery_details_inline_3',
+            'gallery_details_inline_4',
+            'gallery_category_below_menu',
+            'gallery_category_right_1',
+            'gallery_category_right_2',
+            'video_category_below_menu',
+            'video_category_right_1',
+            'video_category_right_2',
+        ])->delete();
+    }
+};

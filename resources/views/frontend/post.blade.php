@@ -350,18 +350,10 @@ $postShareDescription = share_meta_description($post->description, $post->title)
                                     || ad_should_display($adDetailsRight2);
 
                                     $descRaw = strip_empty_post_description_paragraphs($post->description ?? '');
-                                    $mobileAd1 = ad_should_display($adDetailsRight1)
-                                    ? view('frontend.partials.detail-inline-ad', ['ad' => $adDetailsRight1])->render()
-                                    : '';
-                                    $mobileAd2 = ad_should_display($adDetailsRight2)
-                                    ? view('frontend.partials.detail-inline-ad', ['ad' => $adDetailsRight2])->render()
-                                    : '';
-                                    $descriptionForBody = tighten_post_description_paragraph_spacing(
-                                        inject_post_detail_ads_between_paragraphs($descRaw, $mobileAd1, $mobileAd2)
-                                    );
+                                    $descriptionForBody = detail_page_description_with_ads($descRaw, 'details');
                                     @endphp
 
-                                    <!-- নিউজ ডেসক্রিপশন — মোবাইলে অ্যাড প্যারা-ফাঁকে (lg:hidden ব্লক ভিতরে) -->
+                                    <!-- নিউজ ডেসক্রিপশন — প্রতি ৪ প্যারার পর ইনলাইন অ্যাড (মোবাইল + ডেস্কটপ) -->
                                     <div class="post-description prose prose-lg max-w-none text-title text-[1.25rem] md:text-[1.3125rem] font-extralight pt-4 px-0 lg:px-[125px] text-justify leading-[1.5]">
                                         {!! $descriptionForBody !!}
                                     </div>
@@ -387,7 +379,7 @@ $postShareDescription = share_meta_description($post->description, $post->title)
                                     @endif
                                 </div>
 
-                                <!-- দ্বিতীয় কলাম (৩ ভাগ) — lg+ সাইডবার; মোবাইলে অ্যাড ডেসক্রিপশনের ভিতরে -->
+                                <!-- দ্বিতীয় কলাম (৩ ভাগ) — lg+ সাইডবার; বিবরণে ইনলাইন অ্যাড আলাদা -->
                                 <div class="hidden lg:flex flex-col gap-10 w-full min-w-0">
 
                                     @if($hasDetailsRightAds)

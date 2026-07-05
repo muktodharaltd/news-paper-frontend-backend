@@ -32,6 +32,8 @@ $videoShareDescription = share_meta_description($video->description ?? '', $vide
     <x-slot:ogImageAlt>{{ $video->title }}</x-slot>
     <x-slot:shareUrl>{{ route('videos.show', $video->slug) }}</x-slot>
 
+    <x-ad-slot-display slug="video_details_below_menu" variant="banner" wrapper-class="no-print" />
+
         <div class="py-4 md:py-10 min-h-screen bg-white">
             <div class="container">
 
@@ -177,7 +179,7 @@ $videoShareDescription = share_meta_description($video->description ?? '', $vide
 
                         @if($video->description)
                         <div class="prose prose-lg max-w-none text-desc text-lg md:text-xl font-medium leading-relaxed">
-                            {!! $video->description !!}
+                            {!! detail_page_description_with_ads($video->description, 'video_details') !!}
                         </div>
                         @endif
                         
@@ -242,7 +244,18 @@ $videoShareDescription = share_meta_description($video->description ?? '', $vide
                     </div>
 
                     <!-- দ্বিতীয় কলাম (৩ ভাগ) -->
-                    <div class="flex flex-col gap-10 w-full">
+                    <div class="hidden lg:flex flex-col gap-10 w-full min-w-0">
+                        @php
+                        $adVideoRight1 = ad_slot('video_details_right_1');
+                        $adVideoRight2 = ad_slot('video_details_right_2');
+                        $hasVideoSidebarAds = ad_should_display($adVideoRight1) || ad_should_display($adVideoRight2);
+                        @endphp
+                        @if($hasVideoSidebarAds)
+                        <div class="flex flex-col gap-4 w-full min-w-0 ad-section">
+                            <x-ad-slot-display :ad="$adVideoRight1" variant="sidebar" />
+                            <x-ad-slot-display :ad="$adVideoRight2" variant="sidebar" />
+                        </div>
+                        @endif
 
                         <!-- আরও ভিডিও (সাইডবার) -->
                         @if($related->isNotEmpty())

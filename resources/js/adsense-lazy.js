@@ -1,5 +1,5 @@
 /**
- * Google AdSense — iframe sizing/clamping (push HTML-এ inline হয়)।
+ * Google AdSense — slot-এর ভিতরে clamp (local ad size-এর বেশি হবে না)।
  */
 (function () {
     const isMobile = () => window.matchMedia('(max-width: 767px)').matches;
@@ -11,6 +11,19 @@
         const parsed = parseInt(raw, 10);
 
         return Number.isFinite(parsed) && parsed > 0 ? parsed : 90;
+    }
+
+    function frameWidthLimit(frame, mobile) {
+        const styles = getComputedStyle(frame);
+        const key = mobile ? '--ad-mobile-max-width' : '--ad-max-width';
+        const raw = styles.getPropertyValue(key).trim();
+        const parsed = parseInt(raw, 10);
+
+        if (Number.isFinite(parsed) && parsed > 0) {
+            return parsed;
+        }
+
+        return frame?.clientWidth || frame?.offsetWidth || 320;
     }
 
     function frameWidth(frame) {
@@ -66,19 +79,20 @@
         return Math.min(capH, Math.round(width * 0.75));
     }
 
-    function isBelowMenuStrip(frame) {
+    function isFixedStripFrame(frame) {
         return (
-            Boolean(frame?.closest('[data-ad-below-menu]')) &&
-            frame?.getAttribute('data-ad-layout') !== 'box'
+            frame?.getAttribute('data-ad-layout') !== 'box' &&
+            Boolean(frame?.closest('[data-ad-below-menu], #header-ad-slot'))
         );
     }
 
     function frameMetrics(frame, mobile) {
         const layout = frame.getAttribute('data-ad-layout') || 'strip';
         const capH = frameLimit(frame, mobile);
-        const width = frameWidth(frame);
+        const capW = Math.min(frameWidth(frame), frameWidthLimit(frame, mobile));
+        const width = capW;
 
-        if (isBelowMenuStrip(frame)) {
+        if (isFixedStripFrame(frame)) {
             const height = mobile ? boxHeightFromAspect(frame, width, capH) : capH;
 
             return { width, height, layout };
@@ -93,6 +107,22 @@
         return { width, height: capH, layout };
     }
 
+    function fitInside(adW, adH, maxW, maxH) {
+        if (adW < 1 || adH < 1) {
+            return {
+                width: Math.max(1, Math.min(maxW, maxW)),
+                height: Math.max(1, Math.min(maxH, maxH)),
+            };
+        }
+
+        const scale = Math.min(maxW / adW, maxH / adH, 1);
+
+        return {
+            width: Math.max(1, Math.round(adW * scale)),
+            height: Math.max(1, Math.round(adH * scale)),
+        };
+    }
+
     function prepareBoxFrame(frame, height) {
         if (frame.getAttribute('data-ad-layout') !== 'box' || height <= 0) {
             return;
@@ -100,6 +130,7 @@
 
         frame.style.height = height + 'px';
         frame.style.minHeight = height + 'px';
+        frame.style.maxHeight = height + 'px';
     }
 
     function prepareStripFrame(frame, height) {
@@ -109,12 +140,13 @@
 
         frame.style.height = height + 'px';
         frame.style.minHeight = height + 'px';
+        frame.style.maxHeight = height + 'px';
     }
 
     function prepareFilledFrame(ins, frame, height, layout) {
         if (layout === 'box') {
             prepareBoxFrame(frame, height);
-        } else if (isBelowMenuStrip(frame)) {
+        } else if (isFixedStripFrame(frame)) {
             prepareStripFrame(frame, height);
         } else {
             return;
@@ -124,7 +156,7 @@
         ins.style.width = '100%';
         ins.style.overflow = 'hidden';
 
-        if (isBelowMenuStrip(frame)) {
+        if (isFixedStripFrame(frame)) {
             ins.style.position = 'absolute';
             ins.style.inset = '0';
             ins.style.height = '100%';
@@ -134,45 +166,56 @@
             ins.style.position = 'relative';
             ins.style.height = height + 'px';
             ins.style.minHeight = height + 'px';
+            ins.style.maxHeight = height + 'px';
         }
     }
 
+    function readIframeSize(iframe, fallbackW, fallbackH) {
+        let adW = iframe.offsetWidth;
+        let adH = iframe.offsetHeight;
+
+        if (!adW || !adH) {
+            adW = parseInt(iframe.getAttribute('width'), 10) || fallbackW;
+            adH = parseInt(iframe.getAttribute('height'), 10) || fallbackH;
+        }
+
+        if (adW < 1 || adH < 1) {
+            adW = fallbackW;
+            adH = fallbackH;
+        }
+
+        return { adW, adH };
+    }
+
+    function centerIframe(iframe, width, height) {
+        iframe.style.position = 'absolute';
+        iframe.style.left = '50%';
+        iframe.style.top = '50%';
+        iframe.style.transform = 'translate(-50%, -50%)';
+        iframe.style.width = width + 'px';
+        iframe.style.height = height + 'px';
+        iframe.style.maxWidth = width + 'px';
+        iframe.style.maxHeight = height + 'px';
+        iframe.style.marginInline = '0';
+        iframe.style.display = 'block';
+        iframe.style.border = '0';
+    }
+
     function fitStripIframe(iframe, frame, targetH) {
-        const frameW = frame.clientWidth || frameWidth(frame);
-        const frameH = frame.clientHeight > 0 ? frame.clientHeight : targetH;
+        const frameW = Math.min(frame.clientWidth || frameWidth(frame), frameWidthLimit(frame, isMobile()));
+        const frameH = Math.min(
+            frame.clientHeight > 0 ? frame.clientHeight : targetH,
+            targetH,
+        );
 
         if (frameW < 1 || frameH < 1) {
             return;
         }
 
-        let adW = iframe.offsetWidth;
-        let adH = iframe.offsetHeight;
+        const { adW, adH } = readIframeSize(iframe, frameW, frameH);
+        const fitted = fitInside(adW, adH, frameW, frameH);
 
-        if (!adW || !adH) {
-            adW = parseInt(iframe.getAttribute('width'), 10) || frameW;
-            adH = parseInt(iframe.getAttribute('height'), 10) || frameH;
-        }
-
-        if (adW < 1 || adH < 1) {
-            adW = frameW;
-            adH = frameH;
-        }
-
-        const scale = frameW / adW;
-        const w = Math.max(1, Math.round(adW * scale));
-        const h = Math.max(1, Math.round(adH * scale));
-
-        iframe.style.position = 'absolute';
-        iframe.style.left = '50%';
-        iframe.style.top = '50%';
-        iframe.style.transform = 'translate(-50%, -50%)';
-        iframe.style.width = w + 'px';
-        iframe.style.height = h + 'px';
-        iframe.style.maxWidth = 'none';
-        iframe.style.maxHeight = 'none';
-        iframe.style.marginInline = '0';
-        iframe.style.display = 'block';
-        iframe.style.border = '0';
+        centerIframe(iframe, fitted.width, fitted.height);
     }
 
     function syncGoogleStripHosts(ins) {
@@ -192,41 +235,31 @@
         });
     }
 
-    function fitBelowMenuStripIframe(iframe, frame, targetH) {
-        const frameW = frame.clientWidth || frameWidth(frame);
-        const frameH = frame.clientHeight > 0 ? frame.clientHeight : targetH;
+    function fitFixedStripIframe(iframe, frame, targetH) {
+        const frameW = Math.min(frame.clientWidth || frameWidth(frame), frameWidthLimit(frame, isMobile()));
+        const frameH = Math.min(
+            frame.clientHeight > 0 ? frame.clientHeight : targetH,
+            targetH,
+        );
 
         if (frameW < 1 || frameH < 1) {
             return;
         }
 
-        let adW = iframe.offsetWidth;
-        let adH = iframe.offsetHeight;
-
-        if (!adW || !adH) {
-            adW = parseInt(iframe.getAttribute('width'), 10) || frameW;
-            adH = parseInt(iframe.getAttribute('height'), 10) || Math.round(frameW / 13);
-        }
-
-        if (adW < 1 || adH < 1) {
-            adW = frameW;
-            adH = Math.round(frameW / 13);
-        }
-
-        const w = frameW;
-        const h = Math.min(frameH, Math.max(1, Math.round((adH / adW) * w)));
+        const { adW, adH } = readIframeSize(iframe, frameW, Math.round(frameW / 13));
+        const fitted = fitInside(adW, adH, frameW, frameH);
 
         const ins = iframe.closest('ins.adsbygoogle');
         syncGoogleStripHosts(ins);
 
         iframe.style.position = 'absolute';
-        iframe.style.left = '0';
+        iframe.style.left = '50%';
         iframe.style.top = '50%';
-        iframe.style.transform = 'translateY(-50%)';
-        iframe.style.width = w + 'px';
-        iframe.style.height = h + 'px';
-        iframe.style.maxWidth = 'none';
-        iframe.style.maxHeight = frameH + 'px';
+        iframe.style.transform = 'translate(-50%, -50%)';
+        iframe.style.width = fitted.width + 'px';
+        iframe.style.height = fitted.height + 'px';
+        iframe.style.maxWidth = fitted.width + 'px';
+        iframe.style.maxHeight = fitted.height + 'px';
         iframe.style.margin = '0';
         iframe.style.display = 'block';
         iframe.style.border = '0';
@@ -238,8 +271,8 @@
             return;
         }
 
-        if (isBelowMenuStrip(frame)) {
-            fitBelowMenuStripIframe(iframe, frame, targetH);
+        if (isFixedStripFrame(frame)) {
+            fitFixedStripIframe(iframe, frame, targetH);
             return;
         }
 
@@ -247,41 +280,20 @@
     }
 
     function fitBoxIframe(iframe, frame, targetH) {
-        const frameW = frame.clientWidth || frameWidth(frame);
-        const frameH = frame.clientHeight > 0 ? frame.clientHeight : targetH;
+        const frameW = Math.min(frame.clientWidth || frameWidth(frame), frameWidthLimit(frame, isMobile()));
+        const frameH = Math.min(
+            frame.clientHeight > 0 ? frame.clientHeight : targetH,
+            targetH,
+        );
 
         if (frameW < 1 || frameH < 1) {
             return;
         }
 
-        let adW = iframe.offsetWidth;
-        let adH = iframe.offsetHeight;
+        const { adW, adH } = readIframeSize(iframe, frameW, frameH);
+        const fitted = fitInside(adW, adH, frameW, frameH);
 
-        if (!adW || !adH) {
-            adW = parseInt(iframe.getAttribute('width'), 10) || frameW;
-            adH = parseInt(iframe.getAttribute('height'), 10) || frameH;
-        }
-
-        if (adW < 1 || adH < 1) {
-            adW = frameW;
-            adH = frameH;
-        }
-
-        const scale = Math.max(frameW / adW, frameH / adH);
-        const w = Math.max(1, Math.round(adW * scale));
-        const h = Math.max(1, Math.round(adH * scale));
-
-        iframe.style.position = 'absolute';
-        iframe.style.left = '50%';
-        iframe.style.top = '50%';
-        iframe.style.transform = 'translate(-50%, -50%)';
-        iframe.style.width = w + 'px';
-        iframe.style.height = h + 'px';
-        iframe.style.maxWidth = 'none';
-        iframe.style.maxHeight = 'none';
-        iframe.style.marginInline = '0';
-        iframe.style.display = 'block';
-        iframe.style.border = '0';
+        centerIframe(iframe, fitted.width, fitted.height);
     }
 
     function clampIframe(ins) {
@@ -295,15 +307,12 @@
 
         iframe.style.display = 'block';
 
-        if (layout === 'box' || isBelowMenuStrip(frame)) {
+        if (layout === 'box' || isFixedStripFrame(frame)) {
             prepareFilledFrame(ins, frame, height, layout);
             fitFilledIframe(iframe, frame, height, layout);
         } else {
-            iframe.style.width = '100%';
-            iframe.style.maxWidth = '100%';
-            iframe.style.maxHeight = height + 'px';
-            iframe.style.height = 'auto';
-            iframe.style.marginInline = 'auto';
+            prepareStripFrame(frame, height);
+            fitStripIframe(iframe, frame, height);
         }
 
         return true;

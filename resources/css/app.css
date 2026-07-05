@@ -376,6 +376,50 @@ body {
     }
 }
 
+/* Google in-content Auto Ads — page মাঝখানে বসে যায়, লুকান */
+.google-auto-placed {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+}
+
+/* body-level random units — anchor/vignette (noablate) ছাড়া */
+body > ins.adsbygoogle:not(.adsbygoogle-noablate) {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+}
+
+#header-ad-slot .container .ad-slot-frame.ad-slot-google:not([data-ad-layout="box"]) {
+    width: 100% !important;
+    max-width: min(100%, var(--ad-max-width, 1300px)) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    display: block !important;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (min-width: 768px) {
+    #header-ad-slot .container .ad-slot-frame.ad-slot-google:not([data-ad-layout="box"]) {
+        height: var(--ad-max-height, 90px) !important;
+        min-height: var(--ad-max-height, 90px) !important;
+        max-height: var(--ad-max-height, 90px) !important;
+    }
+}
+
+@media (max-width: 767px) {
+    #header-ad-slot .container .ad-slot-frame.ad-slot-google:not([data-ad-layout="box"]) {
+        max-height: var(--ad-mobile-max-height, var(--ad-max-height, 90px)) !important;
+    }
+}
+
 /* হেডার / মেনুর নিচের অ্যাড — container width (site width) */
 [data-ad-slot-root] .container .ad-slot-frame {
     margin-left: auto;
@@ -533,6 +577,12 @@ body {
     margin-inline: auto;
     object-fit: contain;
     object-position: center;
+    overflow: hidden;
+}
+
+[data-ad-slot-root] .ad-slot-frame.ad-slot-google iframe {
+    max-width: 100% !important;
+    max-height: 100% !important;
 }
 
 [data-ad-slot-root]:not([data-ad-below-menu])
