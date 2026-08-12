@@ -26,6 +26,11 @@ class Category extends Model
         return $this->hasMany(Category::class, 'parent_id');
     }
 
+    public function photocardAd()
+    {
+        return $this->hasOne(PhotocardAd::class);
+    }
+
     // Slug auto-generate
     protected static function boot()
     {

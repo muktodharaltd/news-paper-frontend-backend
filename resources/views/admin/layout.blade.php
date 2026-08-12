@@ -496,6 +496,12 @@
                                     </svg>
                                     <span class="ml-1">All Advertisement</span>
                                 </a>
+                                <a href="{{ route('admin.advertisements.photocard-ads.index') }}" class="flex items-center gap-0 py-2 text-xs font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-all group/sub relative {{ request()->routeIs('admin.advertisements.photocard-ads.*') ? 'text-indigo-600 dark:text-indigo-400' : '' }}">
+                                    <svg class="w-6 h-6 text-slate-200 dark:text-slate-800 -ml-[1px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M1 12h10m0 0l-4-4m4 4l-4 4"></path>
+                                    </svg>
+                                    <span class="ml-1">Photocard Ads</span>
+                                </a>
                             </div>
                         </div>
                     </div>

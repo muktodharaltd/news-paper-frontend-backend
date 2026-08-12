@@ -188,6 +188,9 @@ Route::prefix('admin')
             Route::middleware('feature:advertisements.manage')->group(function (): void {
                 Route::put('/advertisements/google-slots', [App\Http\Controllers\Admin\AdvertisementController::class, 'updateBulkGoogleSlots'])->name('advertisements.google-slots.update');
                 Route::get('/advertisements', [App\Http\Controllers\Admin\AdvertisementController::class, 'index'])->name('advertisements.index');
+                Route::get('/advertisements/photocard-ads', [App\Http\Controllers\Admin\PhotocardAdController::class, 'index'])->name('advertisements.photocard-ads.index');
+                Route::post('/advertisements/photocard-ads/{categoryId}', [App\Http\Controllers\Admin\PhotocardAdController::class, 'update'])->name('advertisements.photocard-ads.update');
+                Route::delete('/advertisements/photocard-ads/{categoryId}', [App\Http\Controllers\Admin\PhotocardAdController::class, 'destroy'])->name('advertisements.photocard-ads.destroy');
                 Route::get('/advertisements/{id}/edit', [App\Http\Controllers\Admin\AdvertisementController::class, 'edit'])->name('advertisements.edit');
                 Route::put('/advertisements/{id}', [App\Http\Controllers\Admin\AdvertisementController::class, 'update'])->name('advertisements.update');
                 Route::put('/advertisements/{id}/google-settings', [App\Http\Controllers\Admin\AdvertisementController::class, 'updateGoogleSettings'])->name('advertisements.google-settings.update');

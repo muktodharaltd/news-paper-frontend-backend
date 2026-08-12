@@ -146,6 +146,9 @@ class HomeController extends Controller
             'section-triple-col-1',
             'section-triple-col-2',
             'section-triple-col-3',
+            'section-triple-col-4',
+            'section-triple-col-5',
+            'section-triple-col-6',
         ];
 
         $sectionKeys = array_merge($postSectionKeys, ['section-video', 'section-gallery']);

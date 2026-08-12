@@ -55,6 +55,86 @@ const ALT_BOTTOM_BOX_TOP_BORDER_COLOR_CENTER = "#F97316";
 const ALT_BOTTOM_BOX_TOP_BORDER_COLOR_EDGE = "#9A3412";
 const IMAGE_OVERLAY_DARK_BAND = 0;
 const IMAGE_OVERLAY_FADE_BAND = 0.18;
+const AD_HEIGHT_FALLBACK = 200;
+const AD_HEIGHT_MAX = 320;
+
+function hasPhotocardAd(data) {
+    return Boolean(data?.adImage);
+}
+
+function adHeightFromImage(adImage) {
+    if (!adImage?.naturalWidth || !adImage?.naturalHeight) {
+        return AD_HEIGHT_FALLBACK;
+    }
+
+    const height = Math.round(
+        (CARD_SIZE * adImage.naturalHeight) / adImage.naturalWidth,
+    );
+
+    return Math.max(1, Math.min(AD_HEIGHT_MAX, height));
+}
+
+function resolveAdHeight(data) {
+    if (!hasPhotocardAd(data)) {
+        return 0;
+    }
+
+    const height = Number(data.adHeight);
+
+    return Number.isFinite(height) && height > 0
+        ? Math.round(height)
+        : AD_HEIGHT_FALLBACK;
+}
+
+function cardTotalHeight(data) {
+    return CARD_SIZE + resolveAdHeight(data);
+}
+
+async function ensureAdHeight(data) {
+    if (!hasPhotocardAd(data)) {
+        data.adHeight = 0;
+        return data;
+    }
+
+    if (Number.isFinite(Number(data.adHeight)) && Number(data.adHeight) > 0) {
+        return data;
+    }
+
+    const adImage = await loadImage(data.adImage);
+    data.adHeight = adHeightFromImage(adImage);
+
+    return data;
+}
+
+function adBannerHtml(data) {
+    if (!hasPhotocardAd(data)) {
+        return "";
+    }
+
+    const height = resolveAdHeight(data);
+
+    return `<div class="post-photocard-ad" style="width:${CARD_SIZE}px;height:${height}px;flex-shrink:0;overflow:hidden;background:#ffffff;line-height:0;"><img ${imageTagAttributes(data.adImage)} style="display:block;width:100%;height:100%;object-fit:fill;"></div>`;
+}
+
+async function drawAdBanner(ctx, data) {
+    if (!hasPhotocardAd(data)) {
+        return;
+    }
+
+    const adImage = await loadImage(data.adImage);
+    const height = adImage
+        ? adHeightFromImage(adImage)
+        : resolveAdHeight(data);
+    data.adHeight = height;
+
+    if (adImage) {
+        ctx.drawImage(adImage, 0, CARD_SIZE, CARD_SIZE, height);
+        return;
+    }
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, CARD_SIZE, CARD_SIZE, height);
+}
 
 let currentPhotocardData = null;
 let activeDesign = "alt";
@@ -256,22 +336,35 @@ function drawFooterHintWithIcons(
     ctx.restore();
 }
 
-function titleFontSize(title) {
+function titleScaleFactor(dataOrScale = 100) {
+    const raw =
+        typeof dataOrScale === "object" && dataOrScale !== null
+            ? dataOrScale.titleScale
+            : dataOrScale;
+    const scale = Number(raw);
+
+    if (!Number.isFinite(scale)) {
+        return 1;
+    }
+
+    return Math.max(0.9, Math.min(1.1, scale / 100));
+}
+
+function titleFontSize(title, dataOrScale = 100) {
     const length = String(title ?? "").length;
+    let base;
 
     if (length > 120) {
-        return 65;
+        base = 56;
+    } else if (length > 80) {
+        base = 62;
+    } else if (length > 50) {
+        base = 66;
+    } else {
+        base = 68;
     }
 
-    if (length > 80) {
-        return 71;
-    }
-
-    if (length > 50) {
-        return 77;
-    }
-
-    return 79;
+    return Math.round(base * titleScaleFactor(dataOrScale));
 }
 
 function footerUrlMaxWidth(hasLogo) {
@@ -517,7 +610,7 @@ function buildCardHtml(data) {
     const siteName = escapeHtml(data.siteName || "");
     const date = escapeHtml(data.date || "");
     const primary = escapeHtml(data.primaryColor || "#28a745");
-    const fontSize = titleFontSize(data.title);
+    const fontSize = titleFontSize(data.title, data);
     const unifiedOverlay = unifiedOverlayGradientCss();
     const { height: overlayHeight } = unifiedOverlayMetrics();
 
@@ -539,7 +632,7 @@ function buildCardHtml(data) {
     const titleBottom = footerReserved + 18;
 
     return `
-        <div class="post-photocard-export" style="position:relative;display:flex;flex-direction:column;width:${CARD_SIZE}px;height:${CARD_SIZE}px;flex-shrink:0;background:${OVERLAY_DARK_SOLID};font-family:'SolaimanLipi',sans-serif;overflow:hidden;box-shadow:0 10px 40px rgba(15,23,42,0.15);">
+        <div class="post-photocard-export" style="position:relative;display:flex;flex-direction:column;width:${CARD_SIZE}px;height:${cardTotalHeight(data)}px;flex-shrink:0;background:${OVERLAY_DARK_SOLID};font-family:'SolaimanLipi',sans-serif;overflow:hidden;box-shadow:0 10px 40px rgba(15,23,42,0.15);">
             <div class="post-photocard-image" style="position:relative;width:${CARD_SIZE}px;height:${IMAGE_HEIGHT}px;flex-shrink:0;overflow:hidden;line-height:0;">
                 ${imageBlock}
             </div>
@@ -556,7 +649,8 @@ function buildCardHtml(data) {
                     </div>
                 </div>
             </div>
-            <div aria-hidden="true" style="position:absolute;left:0;right:0;bottom:0;height:${overlayHeight}px;background:${unifiedOverlay};pointer-events:none;z-index:1;"></div>
+            <div aria-hidden="true" style="position:absolute;left:0;right:0;bottom:${resolveAdHeight(data)}px;height:${overlayHeight}px;background:${unifiedOverlay};pointer-events:none;z-index:1;"></div>
+            ${adBannerHtml(data)}
         </div>
     `;
 }
@@ -566,7 +660,7 @@ function buildAltCardHtml(data) {
     const siteUrl = escapeHtml(data.siteUrl || "");
     const date = escapeHtml(data.date || "");
     const primary = escapeHtml(data.primaryColor || "#28a745");
-    const fontSize = titleFontSize(data.title);
+    const fontSize = titleFontSize(data.title, data);
     const measureCanvas = document.createElement("canvas");
     const measureCtx = measureCanvas.getContext("2d");
     const urlFontSize = fitFooterUrlFontSize(
@@ -606,7 +700,7 @@ function buildAltCardHtml(data) {
     const bottomIconBlock = altSeamIconBlockHtml(data.icon);
 
     return `
-        <div class="post-photocard-export-alt" style="position:relative;display:flex;flex-direction:column;width:${CARD_SIZE}px;height:${CARD_SIZE}px;flex-shrink:0;background:${OVERLAY_DARK_SOLID};font-family:'SolaimanLipi',sans-serif;overflow:hidden;box-shadow:0 10px 40px rgba(15,23,42,0.15);">
+        <div class="post-photocard-export-alt" style="position:relative;display:flex;flex-direction:column;width:${CARD_SIZE}px;height:${cardTotalHeight(data)}px;flex-shrink:0;background:${OVERLAY_DARK_SOLID};font-family:'SolaimanLipi',sans-serif;overflow:hidden;box-shadow:0 10px 40px rgba(15,23,42,0.15);">
             <div class="post-photocard-image" style="position:relative;width:${CARD_SIZE}px;height:${IMAGE_HEIGHT}px;flex-shrink:0;overflow:hidden;line-height:0;">
                 ${imageBlock}
             </div>
@@ -629,6 +723,7 @@ function buildAltCardHtml(data) {
                 </div>
             </div>
             ${bottomIconBlock}
+            ${adBannerHtml(data)}
         </div>
     `;
 }
@@ -800,7 +895,7 @@ async function renderPhotocardCanvas(data) {
     const title = String(data.title ?? "");
     const siteName = String(data.siteName ?? "");
     const date = String(data.date ?? "");
-    const fontSize = titleFontSize(title);
+    const fontSize = titleFontSize(title, data);
     const lineHeight = Math.round(fontSize * 1.35);
     const titleMaxWidth = CARD_SIZE - TITLE_X_PADDING * 2;
 
@@ -808,6 +903,8 @@ async function renderPhotocardCanvas(data) {
         loadImage(data.image),
         loadImage(data.logo),
     ]);
+
+    await ensureAdHeight(data);
 
     const bottomTop = IMAGE_HEIGHT;
 
@@ -833,9 +930,10 @@ async function renderPhotocardCanvas(data) {
         titleBlockTop +
         Math.max(0, (titleBlockHeight - titleContentHeight) / 2);
 
+    const totalHeight = cardTotalHeight(data);
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(CARD_SIZE * EXPORT_SCALE);
-    canvas.height = Math.round(CARD_SIZE * EXPORT_SCALE);
+    canvas.height = Math.round(totalHeight * EXPORT_SCALE);
 
     const ctx = canvas.getContext("2d");
     ctx.scale(EXPORT_SCALE, EXPORT_SCALE);
@@ -914,6 +1012,8 @@ async function renderPhotocardCanvas(data) {
         ctx.fillText(siteName, CARD_SIZE - SECTION_X_PADDING, footerBaseY);
     }
 
+    await drawAdBanner(ctx, data);
+
     return canvas;
 }
 
@@ -922,7 +1022,7 @@ async function renderAltPhotocardCanvas(data) {
     const title = String(data.title ?? "");
     const siteUrl = String(data.siteUrl ?? "");
     const date = String(data.date ?? "");
-    const fontSize = titleFontSize(title);
+    const fontSize = titleFontSize(title, data);
     const lineHeight = Math.round(fontSize * 1.35);
     const titleMaxWidth = CARD_SIZE - TITLE_X_PADDING * 2;
 
@@ -930,6 +1030,8 @@ async function renderAltPhotocardCanvas(data) {
         loadImage(data.image),
         loadImage(data.icon),
     ]);
+
+    await ensureAdHeight(data);
 
     const bottomTop = IMAGE_HEIGHT;
 
@@ -964,9 +1066,10 @@ async function renderAltPhotocardCanvas(data) {
         titleContentHeight,
     );
 
+    const totalHeight = cardTotalHeight(data);
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(CARD_SIZE * EXPORT_SCALE);
-    canvas.height = Math.round(CARD_SIZE * EXPORT_SCALE);
+    canvas.height = Math.round(totalHeight * EXPORT_SCALE);
 
     const ctx = canvas.getContext("2d");
     ctx.scale(EXPORT_SCALE, EXPORT_SCALE);
@@ -1062,12 +1165,16 @@ async function renderAltPhotocardCanvas(data) {
     });
     ctx.letterSpacing = "0px";
 
+    await drawAdBanner(ctx, data);
+
     return canvas;
 }
 
 function replaceBrokenImages(container, primaryColor = "#28a745") {
     const images = Array.from(container.querySelectorAll("img")).filter(
-        (img) => !img.getAttribute("aria-hidden"),
+        (img) =>
+            !img.getAttribute("aria-hidden") &&
+            !img.closest(".post-photocard-ad"),
     );
 
     images.forEach((img) => {
@@ -1189,6 +1296,8 @@ async function renderPreview(data) {
         return;
     }
 
+    await ensureAdHeight(data);
+
     cardRoot.innerHTML = buildCardHtmlForVariant(data, activeDesign);
     cardAltRoot.innerHTML = buildCardHtmlForVariant(data, inactiveDesign());
 
@@ -1232,22 +1341,23 @@ function ensurePreviewScaler(cardRoot, cardEl) {
     return scaler;
 }
 
-function scalePreviewCard(cardRoot, cardEl, displaySize) {
+function scalePreviewCard(cardRoot, cardEl, displayWidth, cardHeight = CARD_SIZE) {
     const previewScaler = ensurePreviewScaler(cardRoot, cardEl);
-    const displayScale = displaySize / CARD_SIZE;
+    const displayScale = displayWidth / CARD_SIZE;
+    const displayHeight = Math.max(1, Math.round(cardHeight * displayScale));
 
-    previewScaler.style.width = `${displaySize}px`;
-    previewScaler.style.height = `${displaySize}px`;
+    previewScaler.style.width = `${displayWidth}px`;
+    previewScaler.style.height = `${displayHeight}px`;
     previewScaler.style.overflow = "hidden";
 
     cardRoot.style.display = "block";
     cardRoot.style.lineHeight = "0";
-    cardRoot.style.width = `${displaySize}px`;
-    cardRoot.style.height = `${displaySize}px`;
+    cardRoot.style.width = `${displayWidth}px`;
+    cardRoot.style.height = `${displayHeight}px`;
     cardRoot.style.overflow = "hidden";
 
     cardEl.style.width = `${CARD_SIZE}px`;
-    cardEl.style.height = `${CARD_SIZE}px`;
+    cardEl.style.height = `${cardHeight}px`;
     cardEl.style.transform = `scale(${displayScale})`;
     cardEl.style.transformOrigin = "top left";
 }
@@ -1344,6 +1454,8 @@ function applyPreviewScale() {
     const refThumbSlot = refThumb + thumbBorder;
     const refBodyWidth = refMain + bodyGap + refThumbSlot;
     const refPanelWidth = refBodyWidth + bodyPaddingX;
+    const cardHeight = cardTotalHeight(currentPhotocardData);
+    const heightRatio = cardHeight / CARD_SIZE;
 
     const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
     const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
@@ -1354,13 +1466,17 @@ function applyPreviewScale() {
     const layoutScale = Math.min(
         1,
         availableWidth / refPanelWidth,
-        availableHeight / refMain,
+        availableHeight / (refMain * heightRatio),
     );
 
     const mainScaled = Math.max(1, Math.floor(refMain * layoutScale));
+    const mainHeight = Math.max(1, Math.round(mainScaled * heightRatio));
     const thumbScaled = Math.max(1, Math.floor(refThumb * layoutScale));
+    const thumbHeight = Math.max(1, Math.round(thumbScaled * heightRatio));
     const thumbSlot =
         thumbScaled + Math.max(1, Math.ceil(thumbBorder * layoutScale));
+    const thumbSlotH =
+        thumbHeight + Math.max(1, Math.ceil(thumbBorder * layoutScale));
     const scaledBodyGap = Math.max(1, Math.ceil(bodyGap * layoutScale));
     const panelWidth = mainScaled + scaledBodyGap + thumbSlot + bodyPaddingX;
 
@@ -1375,21 +1491,21 @@ function applyPreviewScale() {
     }
 
     viewport.style.width = `${mainScaled}px`;
-    viewport.style.height = `${mainScaled}px`;
+    viewport.style.height = `${mainHeight}px`;
     viewport.style.flex = "0 0 auto";
 
     viewportAlt.style.width = `${thumbScaled}px`;
-    viewportAlt.style.height = `${thumbScaled}px`;
+    viewportAlt.style.height = `${thumbHeight}px`;
     viewportAlt.style.flex = "0 0 auto";
 
     if (thumbBtn) {
         thumbBtn.style.width = `${thumbSlot}px`;
-        thumbBtn.style.height = `${thumbSlot}px`;
+        thumbBtn.style.height = `${thumbSlotH}px`;
         thumbBtn.style.padding = `${Math.max(1, Math.ceil(4 * layoutScale))}px`;
     }
 
-    scalePreviewCard(cardRoot, cardEl, mainScaled);
-    scalePreviewCard(cardAltRoot, cardAltEl, thumbScaled);
+    scalePreviewCard(cardRoot, cardEl, mainScaled, cardHeight);
+    scalePreviewCard(cardAltRoot, cardAltEl, thumbScaled, cardHeight);
 }
 
 async function downloadCard(data) {

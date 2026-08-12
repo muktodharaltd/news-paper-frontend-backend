@@ -293,6 +293,50 @@
                 </button>
             </div>
         </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+            <div id="section-triple-col-4" class="relative h-20 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center px-3 text-xs font-semibold text-slate-600 dark:text-slate-300" data-allowed-type="post">
+                <span class="absolute left-3 top-1 text-[10px] text-slate-400">Section 17</span>
+                <span class="section-label">
+                    {{ optional(optional($sections->get('section-triple-col-4'))->category)->name ?? 'ক্যাটাগরি যোগ করুন' }}
+                </span>
+                <button
+                    type="button"
+                    class="section-config-edit mt-1 inline-flex items-center justify-center w-7 h-7 rounded-full border border-slate-300 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    data-section-id="section-triple-col-4">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 3.487l3.651 3.651M4.5 19.5l4.223-.469a2 2 0 001.15-.566l9.488-9.488a1.5 1.5 0 000-2.121L16.4 3.05a1.5 1.5 0 00-2.121 0L4.79 12.54a2 2 0 00-.566 1.15L3.75 17.914A1 1 0 004.5 19.5z" />
+                    </svg>
+                </button>
+            </div>
+            <div id="section-triple-col-5" class="relative h-20 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center px-3 text-xs font-semibold text-slate-600 dark:text-slate-300" data-allowed-type="post">
+                <span class="absolute left-3 top-1 text-[10px] text-slate-400">Section 18</span>
+                <span class="section-label">
+                    {{ optional(optional($sections->get('section-triple-col-5'))->category)->name ?? 'ক্যাটাগরি যোগ করুন' }}
+                </span>
+                <button
+                    type="button"
+                    class="section-config-edit mt-1 inline-flex items-center justify-center w-7 h-7 rounded-full border border-slate-300 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    data-section-id="section-triple-col-5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 3.487l3.651 3.651M4.5 19.5l4.223-.469a2 2 0 001.15-.566l9.488-9.488a1.5 1.5 0 000-2.121L16.4 3.05a1.5 1.5 0 00-2.121 0L4.79 12.54a2 2 0 00-.566 1.15L3.75 17.914A1 1 0 004.5 19.5z" />
+                    </svg>
+                </button>
+            </div>
+            <div id="section-triple-col-6" class="relative h-20 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center px-3 text-xs font-semibold text-slate-600 dark:text-slate-300" data-allowed-type="post">
+                <span class="absolute left-3 top-1 text-[10px] text-slate-400">Section 19</span>
+                <span class="section-label">
+                    {{ optional(optional($sections->get('section-triple-col-6'))->category)->name ?? 'ক্যাটাগরি যোগ করুন' }}
+                </span>
+                <button
+                    type="button"
+                    class="section-config-edit mt-1 inline-flex items-center justify-center w-7 h-7 rounded-full border border-slate-300 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    data-section-id="section-triple-col-6">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 3.487l3.651 3.651M4.5 19.5l4.223-.469a2 2 0 001.15-.566l9.488-9.488a1.5 1.5 0 000-2.121L16.4 3.05a1.5 1.5 0 00-2.121 0L4.79 12.54a2 2 0 00-.566 1.15L3.75 17.914A1 1 0 004.5 19.5z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
         <div class="grid grid-cols-1 gap-3">
 
             <div id="section-video" class="relative h-14 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center px-3 text-xs font-semibold text-slate-600 dark:text-slate-300" data-allowed-type="video">

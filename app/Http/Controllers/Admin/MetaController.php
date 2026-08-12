@@ -36,6 +36,7 @@ class MetaController extends Controller
             'site_icon' => ['nullable', 'file', 'mimes:jpeg,jpg,png,gif,ico,webp,svg', 'max:1024'],
             'site_description' => ['nullable', 'string'],
             'primary_color' => ['nullable', 'string', 'max:7'],
+            'photocard_title_scale' => ['nullable', 'integer', 'min:90', 'max:110'],
             'facebook_link' => ['nullable', 'string', 'max:500'],
             'twitter_link' => ['nullable', 'string', 'max:500'],
             'instagram_link' => ['nullable', 'string', 'max:500'],
@@ -117,6 +118,9 @@ class MetaController extends Controller
                 ->withInput();
         }
         $validated['google_adsense_inline_slot'] = $inlineSlot;
+
+        $scale = (int) ($validated['photocard_title_scale'] ?? 100);
+        $validated['photocard_title_scale'] = max(90, min(110, $scale ?: 100));
 
         if ($meta) {
             $meta->update($validated);

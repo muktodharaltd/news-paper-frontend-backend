@@ -31,7 +31,7 @@
                     <tr class="border-b border-slate-200 dark:border-slate-700 divide-x divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                         <td class="py-3 px-4 text-center">
                             <span class="text-xs font-normal text-black dark:text-white">
-                                {{ $loop->iteration }}
+                                {{ $topics->firstItem() + $loop->index }}
                             </span>
                         </td>
                         <td class="py-3 px-4">
@@ -80,6 +80,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($topics->hasPages())
+        <div class="pt-6 border-t border-slate-100 dark:border-slate-800 mt-4 px-4 pb-4">
+            {{ $topics->links() }}
+        </div>
+        @endif
     </div>
 </div>
 

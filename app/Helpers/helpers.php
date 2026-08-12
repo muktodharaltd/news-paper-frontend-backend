@@ -60,7 +60,7 @@ if (! function_exists('storage_image_url')) {
 
         $path = ltrim($path, '/');
 
-        $directPublicPrefixes = ['posts/', 'videos/', 'galleries/', 'users/', 'advertisements/', 'pages/', 'meta/'];
+        $directPublicPrefixes = ['posts/', 'videos/', 'galleries/', 'users/', 'advertisements/', 'pages/', 'meta/', 'photocard-ads/'];
         $isManagedUploadPath = false;
         foreach ($directPublicPrefixes as $prefix) {
             if (str_starts_with($path, $prefix)) {
@@ -141,7 +141,7 @@ if (! function_exists('storage_image_src')) {
 
         $path = ltrim($path, '/');
 
-        $directPublicPrefixes = ['posts/', 'videos/', 'galleries/', 'users/', 'advertisements/', 'pages/', 'meta/'];
+        $directPublicPrefixes = ['posts/', 'videos/', 'galleries/', 'users/', 'advertisements/', 'pages/', 'meta/', 'photocard-ads/'];
         $isManagedUploadPath = false;
         foreach ($directPublicPrefixes as $prefix) {
             if (str_starts_with($path, $prefix)) {
@@ -640,7 +640,7 @@ if (! function_exists('post_list_meta_parts')) {
         }
 
         if ($post->created_at) {
-            $parts[] = bangla_diff_for_humans($post->created_at);
+            $parts[] = published_at($post->created_at, 'd M Y');
         }
 
         return $parts;
@@ -1718,6 +1718,55 @@ if (! function_exists('photocard_site_domain')) {
         }
 
         return $host;
+    }
+}
+
+if (! function_exists('photocard_ad_image_for_post')) {
+    /**
+     * পোস্টের ক্যাটাগরি অনুযায়ী ফটোকার্ড অ্যাড ইমেজ।
+     * নিজের ক্যাটাগরির অ্যাড থাকলে সেটা, নাহলে প্যারেন্ট ক্যাটাগরির অ্যাড।
+     */
+    function photocard_ad_image_for_post($post): string
+    {
+        if (! $post) {
+            return '';
+        }
+
+        $categories = $post->categories;
+        if ($categories->isEmpty()) {
+            return '';
+        }
+
+        $ids = $categories->pluck('id')->all();
+        $parentIds = $categories->pluck('parent_id')->filter()->all();
+        $lookupIds = array_values(array_unique(array_merge($ids, $parentIds)));
+
+        if ($lookupIds === []) {
+            return '';
+        }
+
+        $ads = \App\Models\PhotocardAd::query()
+            ->whereIn('category_id', $lookupIds)
+            ->whereNotNull('image')
+            ->where('image', '!=', '')
+            ->get()
+            ->keyBy('category_id');
+
+        foreach ($categories as $category) {
+            $own = $ads->get($category->id);
+            if ($own && $own->image) {
+                return storage_image_src($own->image);
+            }
+
+            if ($category->parent_id) {
+                $parent = $ads->get($category->parent_id);
+                if ($parent && $parent->image) {
+                    return storage_image_src($parent->image);
+                }
+            }
+        }
+
+        return '';
     }
 }
 

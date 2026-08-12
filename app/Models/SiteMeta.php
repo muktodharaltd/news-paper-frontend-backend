@@ -19,6 +19,7 @@ class SiteMeta extends Model
         'site_icon',
         'site_description',
         'primary_color',
+        'photocard_title_scale',
         'facebook_link',
         'twitter_link',
         'instagram_link',

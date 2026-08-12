@@ -15,6 +15,8 @@ $photocardPayload = [
 'siteUrl' => $siteDomain,
 'primaryColor' => optional($siteMeta)->primary_color ?: '#28a745',
 'date' => published_at($post->created_at, 'd M Y'),
+'adImage' => photocard_ad_image_for_post($post),
+'titleScale' => max(90, min(110, (int) (optional($siteMeta)->photocard_title_scale ?? 100))),
 ];
 @endphp
 

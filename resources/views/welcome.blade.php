@@ -1744,18 +1744,34 @@
                 }
             </script>
             @php
-            $tripleColumnSections = [
+            $tripleColumnSectionSets = [
+            [
             ['key' => 'section-triple-col-1', 'fallback' => 'কলাম ১'],
             ['key' => 'section-triple-col-2', 'fallback' => 'কলাম ২'],
             ['key' => 'section-triple-col-3', 'fallback' => 'কলাম ৩'],
+            ],
+            [
+            ['key' => 'section-triple-col-4', 'fallback' => 'কলাম ৪'],
+            ['key' => 'section-triple-col-5', 'fallback' => 'কলাম ৫'],
+            ['key' => 'section-triple-col-6', 'fallback' => 'কলাম ৬'],
+            ],
             ];
-            $hasTripleColumnSections = collect($tripleColumnSections)->contains(function ($column) use ($layoutSections) {
+            $hasAnyTripleColumnSet = collect($tripleColumnSectionSets)->contains(function ($set) use ($layoutSections) {
+            return collect($set)->contains(function ($column) use ($layoutSections) {
             return optional($layoutSections[$column['key']] ?? null)->category_id;
+            });
             });
             @endphp
             <!-- Section: Triple Column (লাইফস্টাইল সেকশনের মতো — ভিডিওর ঠিক আগে) -->
-            @if($hasTripleColumnSections)
-            <section class="mt-12 border-t border-custom pt-8">
+            @if($hasAnyTripleColumnSet)
+            @foreach($tripleColumnSectionSets as $setIndex => $tripleColumnSections)
+            @php
+            $hasThisSet = collect($tripleColumnSections)->contains(function ($column) use ($layoutSections) {
+            return optional($layoutSections[$column['key']] ?? null)->category_id;
+            });
+            @endphp
+            @if($hasThisSet)
+            <section class="{{ $setIndex === 0 ? 'mt-12' : 'mt-8' }} border-t border-custom pt-8">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-y-10 lg:gap-0 lg:-mx-3">
                     @foreach($tripleColumnSections as $columnIndex => $column)
                     @php
@@ -1817,6 +1833,8 @@
                     @endforeach
                 </div>
             </section>
+            @endif
+            @endforeach
             @endif
             <!-- Section: Video (ভিডিও) -->
             @php

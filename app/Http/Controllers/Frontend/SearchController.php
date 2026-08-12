@@ -7,6 +7,7 @@ use App\Models\Gallery;
 use App\Models\Post;
 use App\Models\Video;
 use App\Models\Topic;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -17,7 +18,7 @@ class SearchController extends Controller
      * Unified search: Post, Gallery, Video by title/description.
      * Results merged into one list (category-page style), sorted by date.
      */
-    public function index(Request $request, $slug = null): View
+    public function index(Request $request, $slug = null): View|JsonResponse
     {
         $district = trim((string) $request->get('district', ''));
         $upazila = trim((string) $request->get('upazila', ''));
@@ -43,6 +44,8 @@ class SearchController extends Controller
         $limit = $isDivisionTopic ? 50 : 20;
 
         $items = collect();
+        $hasMore = false;
+        $nextPageUrl = null;
 
         if ($query !== '' || $slug) {
             $term = '%' . $query . '%';
@@ -79,32 +82,18 @@ class SearchController extends Controller
                 });
             }
 
-            $posts = $postsQuery->latest()
-                ->limit($limit)
-                ->get();
+            $postsQuery->latest();
 
-            foreach ($posts as $post) {
-                // Handling sub_title if it's JSON or has HTML tags
-                $subTitle = $post->sub_title;
-                if ($subTitle && is_string($subTitle)) {
-                    $decoded = json_decode($subTitle, true);
-                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                        $subTitle = collect($decoded)
-                            ->map(fn($v) => is_string($v) ? html_entity_decode(strip_tags($v)) : $v)
-                            ->first(fn($v) => is_string($v) && trim($v) !== '');
-                    } else {
-                        $subTitle = html_entity_decode(strip_tags($subTitle));
-                    }
+            // Topic/tag page: category-style load more (প্রথমে ২০, পরে প্রতি ক্লিকে ২০)
+            if ($slug && ! $isDivisionTopic) {
+                [$items, $hasMore, $nextPageUrl, $ajax] = $this->topicItemsWithLoadMore($postsQuery, 20, 20);
+
+                if ($ajax instanceof JsonResponse) {
+                    return $ajax;
                 }
-
-                $items->push((object) [
-                    'type'       => 'post',
-                    'url'        => news_url($post),
-                    'title'      => $post->title,
-                    'image'      => $post->image ? storage_image_url($post->image) : 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600',
-                    'snippet'    => $subTitle ?: html_entity_decode(Str::limit(strip_tags((string) $post->description ?? ''), 160)),
-                    'created_at' => $post->created_at,
-                ]);
+            } else {
+                $posts = $postsQuery->limit($limit)->get();
+                $items = $this->mapPostsToSearchItems($posts);
             }
 
             if (!$slug) {
@@ -159,9 +148,77 @@ class SearchController extends Controller
                 }
             }
 
-            $items = $items->sortByDesc(fn ($i) => $i->created_at->timestamp)->values();
+            if (!$slug || $isDivisionTopic) {
+                $items = $items->sortByDesc(fn ($i) => $i->created_at->timestamp)->values();
+            }
         }
 
-        return view('frontend.search', compact('query', 'items'));
+        return view('frontend.search', compact('query', 'items', 'hasMore', 'nextPageUrl'));
+    }
+
+    private function mapPostsToSearchItems($posts)
+    {
+        return collect($posts)->map(function ($post) {
+            $subTitle = $post->sub_title;
+            if ($subTitle && is_string($subTitle)) {
+                $decoded = json_decode($subTitle, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $subTitle = collect($decoded)
+                        ->map(fn($v) => is_string($v) ? html_entity_decode(strip_tags($v)) : $v)
+                        ->first(fn($v) => is_string($v) && trim($v) !== '');
+                } else {
+                    $subTitle = html_entity_decode(strip_tags($subTitle));
+                }
+            }
+
+            return (object) [
+                'type'       => 'post',
+                'url'        => news_url($post),
+                'title'      => $post->title,
+                'image'      => $post->image ? storage_image_url($post->image) : 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600',
+                'snippet'    => $subTitle ?: html_entity_decode(Str::limit(strip_tags((string) $post->description ?? ''), 160)),
+                'created_at' => $post->created_at,
+            ];
+        })->values();
+    }
+
+    /**
+     * Topic/tag page load more helper.
+     *
+     * @return array{0: \Illuminate\Support\Collection, 1: bool, 2: ?string, 3: ?JsonResponse}
+     */
+    private function topicItemsWithLoadMore($baseQuery, int $initialCount, int $moreCount): array
+    {
+        $total = (clone $baseQuery)->count();
+        $morePage = max(0, (int) request()->input('more_page', 0));
+
+        if (request()->ajax() && $morePage >= 1) {
+            $offset = $initialCount + ($morePage - 1) * $moreCount;
+            $posts = (clone $baseQuery)->skip($offset)->take($moreCount)->get();
+            $items = $this->mapPostsToSearchItems($posts);
+            $hasMore = $total > $initialCount + $morePage * $moreCount;
+            $nextUrl = $hasMore ? $this->loadMoreUrl($morePage + 1) : null;
+
+            return [$items, $hasMore, $nextUrl, response()->json([
+                'html'          => view('frontend.partials.search-items', compact('items'))->render(),
+                'next_page_url' => $nextUrl,
+                'has_more'      => $hasMore,
+            ])];
+        }
+
+        $posts = (clone $baseQuery)->take($initialCount)->get();
+        $items = $this->mapPostsToSearchItems($posts);
+        $hasMore = $total > $initialCount;
+        $nextPageUrl = $hasMore ? $this->loadMoreUrl(1) : null;
+
+        return [$items, $hasMore, $nextPageUrl, null];
+    }
+
+    private function loadMoreUrl(int $morePage): string
+    {
+        $params = request()->query();
+        $params['more_page'] = $morePage;
+
+        return request()->url() . '?' . http_build_query($params);
     }
 }

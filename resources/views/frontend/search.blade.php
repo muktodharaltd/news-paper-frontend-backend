@@ -45,43 +45,63 @@
             <section class="national-grid">
                 <div class="p-0 md:p-4"></div>
 
-                <div class="bg-white p-0 md:p-4 flex flex-col gap-3 md:gap-5">
+                <div class="bg-white p-0 md:p-4 flex flex-col gap-3 md:gap-5" id="search-items-list">
                     @forelse($items as $item)
-                    <article class="flex flex-col md:flex-row gap-2 md:gap-4 last:pb-0">
-                        <a href="{{ $item->url }}" class="w-full md:w-auto flex-shrink-0">
-                            <div class="img-placeholder w-full md:w-[305px] h-[200px] md:h-[170px] overflow-hidden">
-                                <img src="{{ $item->image }}"
-                                    alt="{{ $item->title }}"
-                                    class="w-full h-full object-cover"
-                                    onload="this.parentElement.classList.remove('img-placeholder')">
-                            </div>
-                        </a>
-                        <div class="flex flex-col justify-start gap-2 pt-1 flex-1">
-                            <a href="{{ $item->url }}">
-                                <h3 class="text-xl md:text-xl font-bold serif text-title leading-snug hover:text-primary transition-colors">
-                                    {{ $item->title }}
-                                </h3>
-                            </a>
-                            @if($item->snippet)
-                            <p class="hidden md:block text-sm md:text-base font-normal text-desc leading-relaxed line-clamp-1">
-                                {!! $item->snippet !!}
-                            </p>
-                            @endif
-                            <div class="flex items-center gap-1.5 mt-auto text-gray-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <polyline points="12 6 12 12 16 14" />
-                                </svg>
-                                <span class="text-xs font-medium text-gray-500">
-                                    {{ $item->created_at->diffForHumans() }}
-                                </span>
-                            </div>
-                        </div>
-                    </article>
+                        @if($loop->first)
+                            @include('frontend.partials.search-items', ['items' => $items])
+                            @break
+                        @endif
                     @empty
-                    <p class="text-desc text-center py-10">কোন ফলাফল পাওয়া যায়নি।</p>
+                        <p class="text-desc text-center py-10">কোন ফলাফল পাওয়া যায়নি।</p>
                     @endforelse
                 </div>
+
+                @if(!empty($hasMore) && !empty($nextPageUrl))
+                <div class="mt-6 flex justify-center" id="load-more-wrap">
+                    <button type="button" id="load-more-btn" data-next-url="{{ $nextPageUrl }}"
+                        class="px-8 py-3 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-colors shadow-sm">
+                        আরও
+                    </button>
+                </div>
+                <script>
+                (function() {
+                    var btn = document.getElementById('load-more-btn');
+                    var list = document.getElementById('search-items-list');
+                    var wrap = document.getElementById('load-more-wrap');
+                    if (!btn || !list) return;
+                    btn.addEventListener('click', function() {
+                        var url = btn.getAttribute('data-next-url');
+                        if (!url) return;
+                        btn.disabled = true;
+                        btn.textContent = 'লোড হচ্ছে...';
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('GET', url, true);
+                        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                        xhr.setRequestHeader('Accept', 'application/json');
+                        xhr.onload = function() {
+                            btn.disabled = false;
+                            btn.textContent = 'আরও';
+                            if (xhr.status !== 200) return;
+                            try {
+                                var res = JSON.parse(xhr.responseText);
+                                if (res.html) {
+                                    var div = document.createElement('div');
+                                    div.innerHTML = res.html.trim();
+                                    while (div.firstChild) list.appendChild(div.firstChild);
+                                }
+                                if (res.next_page_url) {
+                                    btn.setAttribute('data-next-url', res.next_page_url);
+                                } else {
+                                    wrap.style.display = 'none';
+                                }
+                            } catch (e) {}
+                        };
+                        xhr.onerror = function() { btn.disabled = false; btn.textContent = 'আরও'; };
+                        xhr.send();
+                    });
+                })();
+                </script>
+                @endif
 
             </section>
         </div>

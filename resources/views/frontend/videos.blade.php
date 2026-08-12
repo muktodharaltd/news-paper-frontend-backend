@@ -107,7 +107,7 @@
                                         <polyline points="12 6 12 12 16 14" />
                                     </svg>
                                     <span class="text-xs font-semibold">
-                                        {{ $video->created_at->diffForHumans() }}
+                                        {{ published_at($video->created_at, 'd M Y') }}
                                     </span>
                                 </div>
                             </div>

@@ -57,6 +57,30 @@
                             <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
+                        <div>
+                            <label class="block text-sm font-normal text-slate-900 mb-2 ml-0.5">ফটোকার্ড টাইটেল সাইজ</label>
+                            @php
+                                $titleScale = (int) old('photocard_title_scale', $meta->photocard_title_scale ?? 100);
+                                if ($titleScale < 90 || $titleScale > 110) {
+                                    $titleScale = 100;
+                                }
+                            @endphp
+                            <select name="photocard_title_scale" class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-indigo-500 transition-all outline-none font-normal text-slate-900 text-sm">
+                                @for($pct = -10; $pct <= 10; $pct++)
+                                    @php $value = 100 + $pct; @endphp
+                                    <option value="{{ $value }}" @selected($titleScale === $value)>
+                                        @if($pct === 0)
+                                            মাঝারি (ডিফল্ট)
+                                        @elseif($pct < 0)
+                                            ছোট ({{ $pct }}%)
+                                        @else
+                                            বড় (+{{ $pct }}%)
+                                        @endif
+                                    </option>
+                                @endfor
+                            </select>
+                            <p class="mt-1 text-xs text-slate-500">শুধু ফটোকার্ডের শিরোনাম — −১০% থেকে +১০% পর্যন্ত।</p>
+                        </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-normal text-slate-900 mb-2 ml-0.5">Website Keywords</label>
                             <input type="text" name="site_keywords" value="{{ old('site_keywords', $meta->site_keywords ?? '') }}" placeholder="Keyword1, Keyword2, Keyword3" class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-indigo-500 transition-all outline-none font-normal text-slate-900 text-sm">

@@ -12,7 +12,7 @@
         <p class="hidden md:block text-sm md:text-base font-normal text-desc leading-relaxed line-clamp-1">{{ html_entity_decode(\Illuminate\Support\Str::limit(strip_tags($post->description), 100)) }}</p>
         <div class="flex items-center gap-1.5 mt-auto text-gray-500">
             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span class="text-[10px] md:text-xs font-medium text-gray-500">{{ $post->created_at->diffForHumans() }}</span>
+            <span class="text-[10px] md:text-xs font-medium text-gray-500">{{ published_at($post->created_at, 'd M Y') }}</span>
         </div>
     </div>
 </article>

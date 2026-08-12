@@ -13,7 +13,8 @@ class TopicController extends Controller
      */
     public function index()
     {
-        $topics = Topic::latest()->get();
+        $topics = Topic::latest()->paginate(20)->withQueryString();
+
         return view('admin.topic.index', compact('topics'));
     }
 

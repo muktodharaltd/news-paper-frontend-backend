@@ -79,7 +79,7 @@
                                         <polyline points="12 6 12 12 16 14" />
                                     </svg>
                                     <span class="text-xs font-medium text-gray-500">
-                                        {{ \Carbon\Carbon::parse('2026-03-06 07:00:00')->diffForHumans() }}
+                                        {{ published_at(\Carbon\Carbon::parse('2026-03-06 07:00:00'), 'd M Y') }}
                                     </span>
                                 </div>
                             </div>
@@ -107,7 +107,7 @@
                                         <polyline points="12 6 12 12 16 14" />
                                     </svg>
                                     <span class="text-xs font-medium text-gray-500">
-                                        {{ \Carbon\Carbon::parse('2026-03-06 15:30:00')->diffForHumans() }}
+                                        {{ published_at(\Carbon\Carbon::parse('2026-03-06 15:30:00'), 'd M Y') }}
                                     </span>
                                 </div>
                             </div>
@@ -135,7 +135,7 @@
                                         <polyline points="12 6 12 12 16 14" />
                                     </svg>
                                     <span class="text-xs font-medium text-gray-500">
-                                        {{ \Carbon\Carbon::parse('2026-03-06 14:00:00')->diffForHumans() }}
+                                        {{ published_at(\Carbon\Carbon::parse('2026-03-06 14:00:00'), 'd M Y') }}
                                     </span>
                                 </div>
                             </div>
@@ -163,7 +163,7 @@
                                         <polyline points="12 6 12 12 16 14" />
                                     </svg>
                                     <span class="text-xs font-medium text-gray-500">
-                                        {{ \Carbon\Carbon::parse('2026-03-05 23:00:00')->diffForHumans() }}
+                                        {{ published_at(\Carbon\Carbon::parse('2026-03-05 23:00:00'), 'd M Y') }}
                                     </span>
                                 </div>
                             </div>

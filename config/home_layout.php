@@ -29,6 +29,9 @@ return [
         'section-triple-col-1' => 4,
         'section-triple-col-2' => 4,
         'section-triple-col-3' => 4,
+        'section-triple-col-4' => 4,
+        'section-triple-col-5' => 4,
+        'section-triple-col-6' => 4,
         'section-video'      => 5, // 1 main + 2×2 side grid on welcome
         'section-gallery'    => 4,
     ],
