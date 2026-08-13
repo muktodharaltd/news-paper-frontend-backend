@@ -56,22 +56,25 @@ const ALT_BOTTOM_BOX_TOP_BORDER_COLOR_EDGE = "#9A3412";
 const IMAGE_OVERLAY_DARK_BAND = 0;
 const IMAGE_OVERLAY_FADE_BAND = 0.18;
 const AD_HEIGHT_FALLBACK = 200;
-const AD_HEIGHT_MAX = 320;
+const AD_HEIGHT_MAX = 400;
 
 function hasPhotocardAd(data) {
     return Boolean(data?.adImage);
 }
 
-function adHeightFromImage(adImage) {
-    if (!adImage?.naturalWidth || !adImage?.naturalHeight) {
+function adHeightFromDimensions(width, height) {
+    const w = Number(width);
+    const h = Number(height);
+
+    if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) {
         return AD_HEIGHT_FALLBACK;
     }
 
-    const height = Math.round(
-        (CARD_SIZE * adImage.naturalHeight) / adImage.naturalWidth,
-    );
+    return Math.max(1, Math.min(AD_HEIGHT_MAX, Math.round((CARD_SIZE * h) / w)));
+}
 
-    return Math.max(1, Math.min(AD_HEIGHT_MAX, height));
+function adHeightFromImage(adImage) {
+    return adHeightFromDimensions(adImage?.naturalWidth, adImage?.naturalHeight);
 }
 
 function resolveAdHeight(data) {
@@ -90,20 +93,73 @@ function cardTotalHeight(data) {
     return CARD_SIZE + resolveAdHeight(data);
 }
 
-async function ensureAdHeight(data) {
+async function ensureAdHeight(data, { force = false } = {}) {
     if (!hasPhotocardAd(data)) {
         data.adHeight = 0;
+        data.adHeightSource = "";
         return data;
     }
 
-    if (Number.isFinite(Number(data.adHeight)) && Number(data.adHeight) > 0) {
+    if (
+        !force &&
+        data.adHeightSource === data.adImage &&
+        Number.isFinite(Number(data.adHeight)) &&
+        Number(data.adHeight) > 0
+    ) {
         return data;
     }
 
     const adImage = await loadImage(data.adImage);
     data.adHeight = adHeightFromImage(adImage);
+    data.adHeightSource = data.adImage;
 
     return data;
+}
+
+function measureAdHeightFromDom(root) {
+    const img = root?.querySelector(".post-photocard-ad img");
+
+    if (img?.naturalWidth && img?.naturalHeight) {
+        return adHeightFromDimensions(img.naturalWidth, img.naturalHeight);
+    }
+
+    return 0;
+}
+
+function syncPhotocardAdLayout(root, adHeight) {
+    if (!root || !(adHeight > 0)) {
+        return;
+    }
+
+    const exportEl = root.querySelector(
+        ".post-photocard-export, .post-photocard-export-alt",
+    );
+    const ad = root.querySelector(".post-photocard-ad");
+    const img = ad?.querySelector("img");
+    const overlay = exportEl?.querySelector(
+        ':scope > [aria-hidden="true"][style*="bottom"]',
+    );
+
+    if (exportEl) {
+        exportEl.style.height = `${CARD_SIZE + adHeight}px`;
+    }
+
+    if (ad) {
+        ad.style.height = `${adHeight}px`;
+        ad.style.minHeight = `${adHeight}px`;
+        ad.style.maxHeight = `${adHeight}px`;
+    }
+
+    if (img) {
+        img.style.width = `${CARD_SIZE}px`;
+        img.style.height = `${adHeight}px`;
+        img.style.objectFit = "fill";
+        img.style.display = "block";
+    }
+
+    if (overlay) {
+        overlay.style.bottom = `${adHeight}px`;
+    }
 }
 
 function adBannerHtml(data) {
@@ -113,7 +169,7 @@ function adBannerHtml(data) {
 
     const height = resolveAdHeight(data);
 
-    return `<div class="post-photocard-ad" style="width:${CARD_SIZE}px;height:${height}px;flex-shrink:0;overflow:hidden;background:#ffffff;line-height:0;"><img ${imageTagAttributes(data.adImage)} style="display:block;width:100%;height:100%;object-fit:fill;"></div>`;
+    return `<div class="post-photocard-ad" style="width:${CARD_SIZE}px;height:${height}px;min-height:${height}px;max-height:${height}px;flex-shrink:0;overflow:hidden;background:#ffffff;line-height:0;font-size:0;"><img ${imageTagAttributes(data.adImage)} style="display:block;width:${CARD_SIZE}px;height:${height}px;object-fit:fill;"></div>`;
 }
 
 async function drawAdBanner(ctx, data) {
@@ -126,14 +182,14 @@ async function drawAdBanner(ctx, data) {
         ? adHeightFromImage(adImage)
         : resolveAdHeight(data);
     data.adHeight = height;
-
-    if (adImage) {
-        ctx.drawImage(adImage, 0, CARD_SIZE, CARD_SIZE, height);
-        return;
-    }
+    data.adHeightSource = data.adImage;
 
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, CARD_SIZE, CARD_SIZE, height);
+
+    if (adImage) {
+        ctx.drawImage(adImage, 0, CARD_SIZE, CARD_SIZE, height);
+    }
 }
 
 let currentPhotocardData = null;
@@ -904,7 +960,7 @@ async function renderPhotocardCanvas(data) {
         loadImage(data.logo),
     ]);
 
-    await ensureAdHeight(data);
+    await ensureAdHeight(data, { force: true });
 
     const bottomTop = IMAGE_HEIGHT;
 
@@ -1031,7 +1087,7 @@ async function renderAltPhotocardCanvas(data) {
         loadImage(data.icon),
     ]);
 
-    await ensureAdHeight(data);
+    await ensureAdHeight(data, { force: true });
 
     const bottomTop = IMAGE_HEIGHT;
 
@@ -1296,12 +1352,24 @@ async function renderPreview(data) {
         return;
     }
 
-    await ensureAdHeight(data);
+    await ensureAdHeight(data, { force: true });
 
     cardRoot.innerHTML = buildCardHtmlForVariant(data, activeDesign);
     cardAltRoot.innerHTML = buildCardHtmlForVariant(data, inactiveDesign());
 
     await Promise.all([waitForImages(cardRoot), waitForImages(cardAltRoot)]);
+
+    const measured =
+        measureAdHeightFromDom(cardRoot) ||
+        measureAdHeightFromDom(cardAltRoot) ||
+        resolveAdHeight(data);
+
+    if (hasPhotocardAd(data) && measured > 0) {
+        data.adHeight = measured;
+        data.adHeightSource = data.adImage;
+        syncPhotocardAdLayout(cardRoot, measured);
+        syncPhotocardAdLayout(cardAltRoot, measured);
+    }
 
     const iconImage = await loadImage(data.icon);
     if (iconImage) {
@@ -1555,6 +1623,8 @@ function openModal(button) {
     }
 
     currentPhotocardData = data;
+    delete currentPhotocardData.adHeight;
+    delete currentPhotocardData.adHeightSource;
     activeDesign = "alt";
     modal.classList.remove("hidden");
     modal.setAttribute("aria-hidden", "false");
