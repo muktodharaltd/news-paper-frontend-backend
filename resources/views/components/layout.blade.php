@@ -487,25 +487,42 @@
             });
         }
 
-        function shareOnMessenger(event) {
+        window.shareOnMessenger = function shareOnMessenger(event) {
             event.preventDefault();
             const url = event.currentTarget.getAttribute('data-share-url');
             if (!url) return;
 
             const encoded = encodeURIComponent(url);
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            const fbSharer = 'https://www.facebook.com/sharer/sharer.php?u=' + encoded;
 
-            if (isMobile) {
-                window.location.href = 'fb-messenger://share/?link=' + encoded;
+            if (isAndroid) {
+                window.location.href =
+                    'intent://share/?link=' + encoded +
+                    '#Intent;scheme=fb-messenger;package=com.facebook.orca;S.browser_fallback_url=' +
+                    encodeURIComponent(fbSharer) + ';end';
                 return;
             }
 
-            window.open(
-                'https://www.facebook.com/dialog/send?link=' + encoded + '&redirect_uri=' + encoded + '&display=popup',
-                'messenger-share-dialog',
-                'width=600,height=520,scrollbars=yes'
-            );
-        }
+            if (isIOS) {
+                var appOpened = false;
+                var onHide = function() { appOpened = true; };
+                window.addEventListener('pagehide', onHide);
+                window.addEventListener('blur', onHide);
+                window.location.href = 'fb-messenger://share/?link=' + encoded;
+                setTimeout(function() {
+                    window.removeEventListener('pagehide', onHide);
+                    window.removeEventListener('blur', onHide);
+                    if (!appOpened) {
+                        window.open(fbSharer, '_blank', 'noopener,noreferrer');
+                    }
+                }, 900);
+                return;
+            }
+
+            window.open(fbSharer, '_blank', 'noopener,noreferrer');
+        };
     </script>
 
     <script>

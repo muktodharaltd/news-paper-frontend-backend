@@ -22,9 +22,11 @@ $photocardPayload = [
 
 <button
     type="button"
-    class="post-photocard-open w-7 h-7 p-0 border border-[#22c55e] flex items-center justify-center bg-[#22c55e] text-white hover:opacity-90 transition-all"
-    title="ফটোকার্ড"
-    aria-label="ফটোকার্ড দেখুন ও ডাউনলোড করুন"
+    {{ $attributes->merge([
+        'class' => 'post-photocard-open w-7 h-7 p-0 border border-[#22c55e] flex items-center justify-center bg-[#22c55e] text-white hover:opacity-90 transition-all',
+        'title' => 'ফটোকার্ড',
+        'aria-label' => 'ফটোকার্ড দেখুন ও ডাউনলোড করুন',
+    ]) }}
     data-photocard='@json($photocardPayload)'>
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none" aria-hidden="true">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -34,6 +36,8 @@ $photocardPayload = [
 </button>
 
 @once
+@push('scripts')
+{{-- Keep modal on body stack so it is never trapped under a display:none (mobile) share row --}}
 <div id="post-photocard-modal" class="hidden fixed inset-0 z-[120] flex items-center justify-center p-4" aria-hidden="true" role="dialog" aria-modal="true" aria-label="ফটোকার্ড প্রিভিউ">
     <div class="absolute inset-0 bg-black/70" data-photocard-close></div>
 
@@ -57,17 +61,15 @@ $photocardPayload = [
             </div>
         </div>
 
-        <div id="post-photocard-body" class="flex flex-row items-start gap-3 px-3 pt-3 pb-0 overflow-hidden">
-            <div class="flex-1 min-w-0 flex justify-center self-start">
-                <div id="post-photocard-viewport" class="overflow-hidden leading-none shrink-0 block bg-[#2d0505]">
-                    <div id="post-photocard-card" class="block"></div>
-                </div>
+        <div id="post-photocard-body" class="flex flex-col items-stretch gap-3 pb-3 overflow-hidden">
+            <div id="post-photocard-viewport" class="w-full overflow-hidden leading-none block bg-[#2d0505]">
+                <div id="post-photocard-card" class="block"></div>
             </div>
-            <div class="flex flex-col gap-2 shrink-0 self-start">
+            <div class="flex justify-center px-3">
                 <button
                     type="button"
                     id="post-photocard-thumb-btn"
-                    class="p-1 border-2 border-slate-200 rounded-lg hover:border-primary transition-colors cursor-pointer overflow-hidden leading-none bg-white"
+                    class="p-1 border-2 border-slate-200 rounded-lg hover:border-primary transition-colors cursor-pointer overflow-hidden leading-none bg-white shrink-0"
                     title="অন্য ডিজাইন দেখুন"
                     aria-label="অন্য ডিজাইন দেখুন">
                     <div id="post-photocard-viewport-alt" class="overflow-hidden leading-none block">
@@ -78,4 +80,5 @@ $photocardPayload = [
         </div>
     </div>
 </div>
+@endpush
 @endonce

@@ -46,7 +46,7 @@ if ($video->image) {
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
             </svg>
-            <span class="text-xs font-semibold">{{ published_at($video->created_at, 'd M Y') }}</span>
+            <span class="text-xs font-semibold">{{ list_published_at($video->created_at) }}</span>
         </div>
     </div>
 </article>

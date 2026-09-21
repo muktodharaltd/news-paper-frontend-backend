@@ -26,7 +26,7 @@
                 <polyline points="12 6 12 12 16 14" />
             </svg>
             <span class="text-xs font-medium text-gray-500">
-                {{ published_at($gallery->created_at, 'd M Y') }}
+                {{ list_published_at($gallery->created_at) }}
             </span>
         </div>
     </div>

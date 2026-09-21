@@ -87,7 +87,7 @@
                                 <div class="flex items-center gap-1.5 mt-auto text-gray-500">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                     <span class="text-xs font-semibold">
-                                        {{ published_at(\Carbon\Carbon::now()->subHours(2), 'd M Y') }}
+                                        {{ list_published_at(\Carbon\Carbon::now()->subHours(2)) }}
                                     </span>
                                 </div>
                             </div>
@@ -123,7 +123,7 @@
                                 <div class="flex items-center gap-1.5 mt-auto text-gray-500">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                     <span class="text-xs font-semibold">
-                                        {{ published_at(\Carbon\Carbon::now()->subHours(5), 'd M Y') }}
+                                        {{ list_published_at(\Carbon\Carbon::now()->subHours(5)) }}
                                     </span>
                                 </div>
                             </div>
@@ -159,7 +159,7 @@
                                 <div class="flex items-center gap-1.5 mt-auto text-gray-500">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                     <span class="text-xs font-semibold">
-                                        {{ published_at(\Carbon\Carbon::now()->subHours(10), 'd M Y') }}
+                                        {{ list_published_at(\Carbon\Carbon::now()->subHours(10)) }}
                                     </span>
                                 </div>
                             </div>

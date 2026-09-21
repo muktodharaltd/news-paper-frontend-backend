@@ -88,7 +88,7 @@
                                         <circle cx="12" cy="12" r="10" />
                                         <polyline points="12 6 12 12 16 14" />
                                     </svg>
-                                    <span class="text-xs font-medium">{{ published_at($featured->created_at, 'd M Y') }}</span>
+                                    <span class="text-xs font-medium">{{ list_published_at($featured->created_at) }}</span>
                                 </div>
                             </div>
                             <div class="min-w-0 group overflow-hidden w-full md:w-auto md:max-w-[55%]">
@@ -123,7 +123,7 @@
                                             <circle cx="12" cy="12" r="10" />
                                             <polyline points="12 6 12 12 16 14" />
                                         </svg>
-                                        <span class="text-[10px] md:text-xs font-medium">{{ published_at($post->created_at, 'd M Y') }}</span>
+                                        <span class="text-[10px] md:text-xs font-medium">{{ list_published_at($post->created_at) }}</span>
                                     </div>
                                 </div>
                             </article>

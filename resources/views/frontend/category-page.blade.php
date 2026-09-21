@@ -43,7 +43,7 @@
                     <div class="flex items-center justify-between mt-4">
                         <div class="flex items-center gap-1.5 text-gray-500">
                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            <span class="text-xs font-semibold">{{ published_at($page->created_at, 'd M Y') }}</span>
+                            <span class="text-xs font-semibold">{{ list_published_at($page->created_at) }}</span>
                         </div>
                         <a href="{{ route('page.show', $page->slug) }}" class="text-xs font-bold text-primary hover:text-primary/90 transition-colors">
                             বিস্তারিত পড়ুন →

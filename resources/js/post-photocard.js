@@ -1450,6 +1450,11 @@ function resetModalLayout() {
         body.style.width = "";
         body.style.height = "";
         body.style.gap = "";
+        body.style.padding = "";
+        body.style.position = "";
+        body.style.display = "";
+        body.style.flexDirection = "";
+        body.style.alignItems = "";
     }
 
     [viewport, viewportAlt].forEach((node) => {
@@ -1460,6 +1465,9 @@ function resetModalLayout() {
         node.style.width = "";
         node.style.height = "";
         node.style.flex = "";
+        node.style.margin = "";
+        node.style.marginLeft = "";
+        node.style.marginRight = "";
     });
 
     const thumbBtn = getThumbButton();
@@ -1467,6 +1475,9 @@ function resetModalLayout() {
         thumbBtn.style.width = "";
         thumbBtn.style.height = "";
         thumbBtn.style.padding = "";
+        thumbBtn.style.top = "";
+        thumbBtn.style.right = "";
+        thumbBtn.style.position = "";
     }
 }
 
@@ -1513,15 +1524,12 @@ function applyPreviewScale() {
     const header = panel.querySelector("[data-photocard-header]");
     const headerHeight = header?.offsetHeight ?? 52;
     const modalGutter = 40;
+    const bodyPaddingX = 0; // big card is edge-to-edge — no left/right gap
+    const bodyPaddingY = 12; // only bottom room for thumb
     const bodyGap = 12;
-    const bodyPaddingX = 24;
-    const bodyPaddingTop = 12;
-    const thumbBorder = 8;
     const refMain = MODAL_MAX_CARD_SIZE;
     const refThumb = THUMB_DISPLAY_SIZE;
-    const refThumbSlot = refThumb + thumbBorder;
-    const refBodyWidth = refMain + bodyGap + refThumbSlot;
-    const refPanelWidth = refBodyWidth + bodyPaddingX;
+    const refPanelWidth = refMain + bodyPaddingX;
     const cardHeight = cardTotalHeight(currentPhotocardData);
     const heightRatio = cardHeight / CARD_SIZE;
 
@@ -1529,38 +1537,56 @@ function applyPreviewScale() {
     const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
     const availableWidth = viewportWidth - modalGutter;
     const availableHeight =
-        viewportHeight - modalGutter - headerHeight - bodyPaddingTop;
+        viewportHeight - modalGutter - headerHeight - bodyPaddingY;
+
+    // Reserve vertical space for the alternate design thumb under the main card.
+    const thumbPad = 4;
+    const thumbBorder = 2;
+    const refThumbSlotH =
+        Math.round(refThumb * heightRatio) + thumbPad * 2 + thumbBorder * 2;
+    const heightForMain = Math.max(
+        120,
+        availableHeight - bodyGap - refThumbSlotH,
+    );
 
     const layoutScale = Math.min(
         1,
-        availableWidth / refPanelWidth,
-        availableHeight / (refMain * heightRatio),
+        availableWidth / Math.max(1, refPanelWidth),
+        heightForMain / (refMain * heightRatio),
     );
 
     const mainScaled = Math.max(1, Math.floor(refMain * layoutScale));
     const mainHeight = Math.max(1, Math.round(mainScaled * heightRatio));
     const thumbScaled = Math.max(1, Math.floor(refThumb * layoutScale));
     const thumbHeight = Math.max(1, Math.round(thumbScaled * heightRatio));
-    const thumbSlot =
-        thumbScaled + Math.max(1, Math.ceil(thumbBorder * layoutScale));
-    const thumbSlotH =
-        thumbHeight + Math.max(1, Math.ceil(thumbBorder * layoutScale));
-    const scaledBodyGap = Math.max(1, Math.ceil(bodyGap * layoutScale));
-    const panelWidth = mainScaled + scaledBodyGap + thumbSlot + bodyPaddingX;
+    const scaledThumbPad = Math.max(1, Math.ceil(thumbPad * layoutScale));
+    const scaledThumbBorder = Math.max(2, Math.ceil(thumbBorder * layoutScale));
+    const thumbSlot = thumbScaled + scaledThumbPad * 2 + scaledThumbBorder * 2;
+    const thumbSlotH = thumbHeight + scaledThumbPad * 2 + scaledThumbBorder * 2;
+    const scaledBodyGap = Math.max(8, Math.ceil(bodyGap * layoutScale));
+    const panelWidth = mainScaled;
 
     panel.style.width = `${panelWidth}px`;
     panel.style.maxWidth = `${availableWidth}px`;
     panel.style.height = "";
 
     if (body) {
-        body.style.width = `${mainScaled + scaledBodyGap + thumbSlot}px`;
+        body.style.width = `${panelWidth}px`;
         body.style.height = "";
         body.style.gap = `${scaledBodyGap}px`;
+        body.style.padding = "0";
+        body.style.position = "";
+        body.style.display = "flex";
+        body.style.flexDirection = "column";
+        body.style.alignItems = "stretch";
     }
 
     viewport.style.width = `${mainScaled}px`;
     viewport.style.height = `${mainHeight}px`;
     viewport.style.flex = "0 0 auto";
+    viewport.style.margin = "0";
+    viewport.style.marginLeft = "0";
+    viewport.style.marginRight = "0";
 
     viewportAlt.style.width = `${thumbScaled}px`;
     viewportAlt.style.height = `${thumbHeight}px`;
@@ -1569,7 +1595,10 @@ function applyPreviewScale() {
     if (thumbBtn) {
         thumbBtn.style.width = `${thumbSlot}px`;
         thumbBtn.style.height = `${thumbSlotH}px`;
-        thumbBtn.style.padding = `${Math.max(1, Math.ceil(4 * layoutScale))}px`;
+        thumbBtn.style.padding = `${scaledThumbPad}px`;
+        thumbBtn.style.top = "";
+        thumbBtn.style.right = "";
+        thumbBtn.style.position = "";
     }
 
     scalePreviewCard(cardRoot, cardEl, mainScaled, cardHeight);
@@ -1633,11 +1662,22 @@ function openModal(button) {
     void renderPreview(data);
 }
 
+function ensureModalOnBody() {
+    const modal = getModal();
+    if (modal && modal.parentElement !== document.body) {
+        // Modal must not stay under a display:none ancestor (e.g. desktop-only share row).
+        document.body.appendChild(modal);
+    }
+}
+
 function initPostPhotocard() {
+    ensureModalOnBody();
+
     document.addEventListener("click", (event) => {
         const openBtn = event.target.closest(".post-photocard-open");
         if (openBtn) {
             event.preventDefault();
+            ensureModalOnBody();
             openModal(openBtn);
             return;
         }

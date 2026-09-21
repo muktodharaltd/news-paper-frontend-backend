@@ -619,6 +619,58 @@ if (! function_exists('bangla_diff_for_humans')) {
     }
 }
 
+if (! function_exists('to_bangla_digits')) {
+    function to_bangla_digits(string|int $value): string
+    {
+        return str_replace(range(0, 9), ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'], (string) $value);
+    }
+}
+
+if (! function_exists('list_published_at')) {
+    /**
+     * তালিকা পেজের তারিখ:
+     * - ২৪ ঘণ্টার মধ্যে: "২২ ঘণ্টা ৪ মিনিট আগে"
+     * - ২৪ ঘণ্টা পরে: "১২ আগস্ট ২০২৬"
+     */
+    function list_published_at($date): string
+    {
+        if (! $date) {
+            return '';
+        }
+
+        $carbon = $date instanceof \Carbon\Carbon
+            ? $date->copy()
+            : \Carbon\Carbon::parse($date);
+
+        if ($carbon->greaterThan(now())) {
+            return published_at($carbon, 'd M Y');
+        }
+
+        $totalMinutes = (int) $carbon->diffInMinutes(now());
+
+        if ($totalMinutes < 24 * 60) {
+            if ($totalMinutes < 1) {
+                return 'এইমাত্র';
+            }
+
+            if ($totalMinutes < 60) {
+                return to_bangla_digits($totalMinutes) . ' মিনিট আগে';
+            }
+
+            $hours = intdiv($totalMinutes, 60);
+            $minutes = $totalMinutes % 60;
+
+            if ($minutes > 0) {
+                return to_bangla_digits($hours) . ' ঘণ্টা ' . to_bangla_digits($minutes) . ' মিনিট আগে';
+            }
+
+            return to_bangla_digits($hours) . ' ঘণ্টা আগে';
+        }
+
+        return published_at($carbon, 'd M Y');
+    }
+}
+
 if (! function_exists('post_list_meta_parts')) {
     /**
      * তালিকায় meta line-এর অংশগুলো: [ক্যাটাগরি, রিপোর্টার/ডেস্ক, সময়]।
@@ -640,7 +692,7 @@ if (! function_exists('post_list_meta_parts')) {
         }
 
         if ($post->created_at) {
-            $parts[] = published_at($post->created_at, 'd M Y');
+            $parts[] = list_published_at($post->created_at);
         }
 
         return $parts;
